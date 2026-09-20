@@ -35,9 +35,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
 
-  <!-- OpenCC-js for Instant Traditional/Simplified Conversion -->
-  <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/core.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/preset.min.js"></script>
+  <!-- OpenCC-js 完整中文轉換字典庫 -->
+  <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
 
   <!-- Firebase v10 Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -117,10 +116,7 @@
           <span>安裝 App</span>
         </button>
 
-        <!-- 繁簡切換 -->
-        <button id="btn-bookshelf-cc" class="px-2.5 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition text-xs font-semibold border border-black/15 dark:border-white/20">
-          <span id="bookshelf-cc-status">簡 ➔ 繁</span>
-        </button>
+
 
         <!-- 主題排版設置 -->
         <button id="btn-bookshelf-settings" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition opacity-80 hover:opacity-100" title="排版設置">
@@ -254,10 +250,7 @@
               <span id="quick-dual-text">雙欄</span>
             </button>
 
-            <!-- 繁簡轉換 -->
-            <button id="btn-toggle-cc" class="px-2.5 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition text-xs font-semibold border border-black/15 dark:border-white/20" title="繁簡轉換">
-              <span id="cc-status">簡 ➔ 繁</span>
-            </button>
+
 
             <!-- 聽書 (TTS) -->
             <button id="btn-toggle-tts" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition text-amber-600 dark:text-amber-400" title="聽書 / 語音朗讀 (快捷鍵: T)">
@@ -426,6 +419,19 @@
             <button data-theme="oled" class="theme-btn flex flex-col items-center gap-1 p-2 rounded-xl border border-white/15 bg-[#000000] text-[#9A9AA0]">
               <span class="w-5 h-5 rounded-full bg-[#000000] border border-white/40 shadow-xs"></span>
               <span class="text-[11px]">極致黑</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 繁簡中文轉換設定 -->
+        <div>
+          <label class="block text-xs font-semibold opacity-70 mb-2">中文繁簡轉換</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-cc-traditional" class="p-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <span>繁體中文 (正體)</span>
+            </button>
+            <button id="btn-cc-simplified" class="p-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <span>簡體中文</span>
             </button>
           </div>
         </div>
@@ -672,8 +678,8 @@
       recentUpdateTime: document.getElementById('recent-update-time'),
       recentCoverBox: document.getElementById('recent-cover-box'),
       btnResumeRecent: document.getElementById('btn-resume-recent'),
-      btnBookshelfCC: document.getElementById('btn-bookshelf-cc'),
-      bookshelfCCStatus: document.getElementById('bookshelf-cc-status'),
+      btnCcTraditional: document.getElementById('btn-cc-traditional'),
+      btnCcSimplified: document.getElementById('btn-cc-simplified'),
       btnBookshelfSettings: document.getElementById('btn-bookshelf-settings'),
       btnBookshelfAuth: document.getElementById('btn-bookshelf-auth'),
       bookshelfAuthDot: document.getElementById('bookshelf-auth-dot'),
@@ -722,8 +728,7 @@
       btnOpenStats: document.getElementById('btn-open-stats'),
       btnCloseStats: document.getElementById('btn-close-stats'),
       // Buttons
-      btnToggleCC: document.getElementById('btn-toggle-cc'),
-      ccStatus: document.getElementById('cc-status'),
+
       btnNextBottom: document.getElementById('btn-next-bottom'),
       btnPrevBottom: document.getElementById('btn-prev-bottom'),
       btnMobilePrev: document.getElementById('btn-mobile-prev'),
@@ -767,14 +772,30 @@
       syncStatusDesc: document.getElementById('sync-status-desc')
     };
 
+    let converterCnToTw = null;
+    let converterTwToCn = null;
+
     function initOpenCC() {
       try {
-        if (window.OpenCC) State.openccConverter = window.OpenCC.Converter({ from: 'cn', to: 'tw' });
-      } catch (e) {}
+        if (window.OpenCC && window.OpenCC.Converter) {
+          converterCnToTw = window.OpenCC.Converter({ from: 'cn', to: 'tw' });
+          converterTwToCn = window.OpenCC.Converter({ from: 'tw', to: 'cn' });
+          console.log('OpenCC 繁簡雙向轉換引擎載入完成！');
+        }
+      } catch (e) {
+        console.warn('OpenCC 初始化異常:', e);
+      }
     }
+
     function convertText(text) {
       if (!text) return '';
-      if (State.isTraditional && State.openccConverter) return State.openccConverter(text);
+      try {
+        if (State.isTraditional && converterCnToTw) {
+          return converterCnToTw(text);
+        } else if (!State.isTraditional && converterTwToCn) {
+          return converterTwToCn(text);
+        }
+      } catch (e) {}
       return text;
     }
 
@@ -831,6 +852,20 @@
       }
       DOM.toggleDualCol.checked = s.isDualCol;
       DOM.toggleTapTurn.checked = s.enableTapTurn;
+
+      // 更新設定面板繁簡按鈕高亮
+      if (DOM.btnCcTraditional && DOM.btnCcSimplified) {
+        DOM.btnCcTraditional.className = `p-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+          State.isTraditional 
+            ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-xs' 
+            : 'border-black/10 dark:border-white/10 opacity-70 hover:opacity-100'
+        }`;
+        DOM.btnCcSimplified.className = `p-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+          !State.isTraditional 
+            ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-xs' 
+            : 'border-black/10 dark:border-white/10 opacity-70 hover:opacity-100'
+        }`;
+      }
 
       localStorage.setItem('novel_reader_settings', JSON.stringify(State.settings));
       syncToFirestore();
@@ -1288,19 +1323,22 @@
       DOM.btnBackToBookshelf.addEventListener('click', showBookshelf);
       DOM.btnPwaInstall.addEventListener('click', triggerPWAInstall);
 
-      const toggleCC = () => {
-        State.isTraditional = !State.isTraditional;
-        const label = State.isTraditional ? '簡 ➔ 繁' : '繁 ➔ 簡';
-        DOM.ccStatus.textContent = label;
-        DOM.bookshelfCCStatus.textContent = label;
+      const setChineseVariant = (toTraditional) => {
+        State.isTraditional = toTraditional;
         localStorage.setItem('novel_reader_cc_traditional', State.isTraditional);
+        applySettings();
         if (State.currentBook) {
           loadChapter(State.currentChapterIndex, window.scrollY / (document.documentElement.scrollHeight - window.innerHeight));
         }
         renderBookshelf();
       };
-      DOM.btnToggleCC.addEventListener('click', toggleCC);
-      DOM.btnBookshelfCC.addEventListener('click', toggleCC);
+
+      if (DOM.btnCcTraditional) {
+        DOM.btnCcTraditional.addEventListener('click', () => setChineseVariant(true));
+      }
+      if (DOM.btnCcSimplified) {
+        DOM.btnCcSimplified.addEventListener('click', () => setChineseVariant(false));
+      }
 
       DOM.bookSearchInput.addEventListener('input', (e) => renderBookshelf(e.target.value.trim()));
 
@@ -1532,6 +1570,10 @@
       const savedSettings = localStorage.getItem('novel_reader_settings');
       if (savedSettings) {
         try { State.settings = { ...State.settings, ...JSON.parse(savedSettings) }; } catch (e) {}
+      }
+      const savedTraditional = localStorage.getItem('novel_reader_cc_traditional');
+      if (savedTraditional !== null) {
+        State.isTraditional = (savedTraditional === 'true');
       }
       applySettings();
 
