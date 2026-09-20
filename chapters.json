@@ -1,0 +1,24 @@
+{
+  "bookId": "jianlai",
+  "title": "劍來",
+  "author": "烽火戲諸侯",
+  "totalChapters": 2,
+  "chapters": [
+    {
+      "id": 1,
+      "order": 204,
+      "title": "第204章 故人來送劍去",
+      "filename": "204_204.第204章 故人來送劍去.txt",
+      "url": "chapters/204_204.第204章 故人來送劍去.txt",
+      "wordCount": 3820
+    },
+    {
+      "id": 2,
+      "order": 262,
+      "title": "第262章 有劍從雲海來",
+      "filename": "262_262.第262章 有劍從雲海來.txt",
+      "url": "chapters/262_262.第262章 有劍從雲海來.txt",
+      "wordCount": 4210
+    }
+  ]
+}
