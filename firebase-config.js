@@ -5,12 +5,13 @@
 // =============================================================================
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCC3YSw4v1IsQmZzuEpxP6crQpgDKZ8IZw",
+  authDomain: "novelreader-dec08.firebaseapp.com",
+  projectId: "novelreader-dec08",
+  storageBucket: "novelreader-dec08.firebasestorage.app",
+  messagingSenderId: "948383757506",
+  appId: "1:948383757506:web:939571345164b56059f75b",
+  measurementId: "G-2LQ2FQQPPT"
 };
 
 // 自動初始化 Firebase (若已填寫正式金鑰)
