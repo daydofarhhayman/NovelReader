@@ -1,0 +1,17 @@
+{
+  "name": "NovelReader 私人小說閱讀器",
+  "short_name": "NovelReader",
+  "description": "跨裝置、沉浸式的小說閱讀器，支援離線閱讀、語音朗讀與雲端進度同步",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1e2022",
+  "theme_color": "#1e2022",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
