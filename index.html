@@ -1043,11 +1043,48 @@
       }
     }
 
+    // --- 帳號專屬閱讀進度隔離與快取輔助函式 ---
+    function getBookProgress(bookId) {
+      if (State.firebaseUser) {
+        const uData = localStorage.getItem(`progress_${State.firebaseUser.uid}_${bookId}`);
+        if (uData) {
+          try { return JSON.parse(uData); } catch (e) {}
+        }
+      }
+      const gData = localStorage.getItem(`progress_${bookId}`);
+      if (gData) {
+        try { return JSON.parse(gData); } catch (e) {}
+      }
+      return null;
+    }
+
+    function getLastReadProgress() {
+      if (State.firebaseUser) {
+        const uData = localStorage.getItem(`last_read_${State.firebaseUser.uid}`);
+        if (uData) {
+          try { return JSON.parse(uData); } catch (e) {}
+        }
+      }
+      const gData = localStorage.getItem('last_read_book');
+      if (gData) {
+        try { return JSON.parse(gData); } catch (e) {}
+      }
+      return null;
+    }
+
+    function saveBookProgress(bookId, prog) {
+      if (State.firebaseUser) {
+        localStorage.setItem(`progress_${State.firebaseUser.uid}_${bookId}`, JSON.stringify(prog));
+        localStorage.setItem(`last_read_${State.firebaseUser.uid}`, JSON.stringify(prog));
+      }
+      localStorage.setItem(`progress_${bookId}`, JSON.stringify(prog));
+      localStorage.setItem('last_read_book', JSON.stringify(prog));
+    }
+
     function renderBookshelf(filter = '') {
-      const lastReadJson = localStorage.getItem('last_read_book');
-      if (lastReadJson) {
+      const last = getLastReadProgress();
+      if (last) {
         try {
-          const last = JSON.parse(lastReadJson);
           DOM.recentReadingBanner.classList.remove('hidden');
           DOM.recentBookTitle.textContent = convertText(last.bookTitle || '未知');
           DOM.recentChapterTitle.textContent = convertText(last.chapterTitle || '');
@@ -1058,7 +1095,7 @@
               ${last.cover ? `<img src="${last.cover}" class="absolute inset-0 w-full h-full object-cover z-10" onerror="this.remove()">` : ''}
             `;
           }
-          DOM.btnResumeRecent.onclick = () => openReader(last.bookId, last.chapterIndex, last.scrollPct);
+          DOM.btnResumeRecent.onclick = () => openReader(last.bookId, last.chapterIndex, last.scrollPercentage || last.scrollPct || 0);
         } catch (e) {}
       } else {
         DOM.recentReadingBanner.classList.add('hidden');
@@ -1072,8 +1109,7 @@
 
       DOM.booksGrid.innerHTML = '';
       list.forEach(book => {
-        const progKey = `progress_${book.bookId}`;
-        const progData = localStorage.getItem(progKey) ? JSON.parse(localStorage.getItem(progKey)) : null;
+        const progData = getBookProgress(book.bookId);
         const currentChap = progData ? progData.chapterIndex + 1 : 1;
         const totalChaps = book.totalChapters || 1400;
         const percent = Math.min(100, Math.round((currentChap / totalChaps) * 100));
@@ -1218,8 +1254,7 @@
         scrollPercentage: targetScrollPercentage,
         timestamp: Date.now()
       };
-      localStorage.setItem(`progress_${State.currentBook.bookId}`, JSON.stringify(prog));
-      localStorage.setItem('last_read_book', JSON.stringify(prog));
+      saveBookProgress(State.currentBook.bookId, prog);
 
       syncToFirestore();
     }
@@ -1717,40 +1752,84 @@
             DOM.syncStatusIcon.className = 'text-amber-500';
             DOM.syncStatusTitle.textContent = '本地快取模式';
             DOM.syncStatusDesc.textContent = '使用 Google 登入後，即可在手機與電腦跨裝置無縫同步您的進度。';
+            renderBookshelf();
           }
         });
       } catch (e) {}
     }
 
     async function syncToFirestore() {
-      if (!State.firebaseUser || !State.firebaseDb || !State.currentBook) return;
+      if (!State.firebaseUser || !State.firebaseDb) return;
       const uid = State.firebaseUser.uid;
-      const scrollH = document.documentElement.scrollHeight - window.innerHeight;
-      const pct = scrollH > 0 ? (window.scrollY / scrollH) : 0;
       try {
+        // 同步自訂閱讀設定
         await State.firebaseDb.doc(`users/${uid}/settings/reader`).set(State.settings, { merge: true });
-        await State.firebaseDb.doc(`users/${uid}/reading_progress/${State.currentBook.bookId}`).set({
-          bookId: State.currentBook.bookId,
-          bookTitle: State.currentBook.title,
-          cover: State.currentBook.cover || '',
-          chapterIndex: State.currentChapterIndex,
-          chapterTitle: State.currentBook.chapters[State.currentChapterIndex]?.title || '',
-          scrollPercentage: pct,
-          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      } catch (e) {}
+
+        // 同步當前閱讀小說之章節進度
+        if (State.currentBook) {
+          const scrollH = document.documentElement.scrollHeight - window.innerHeight;
+          const pct = scrollH > 0 ? (window.scrollY / scrollH) : 0;
+          const prog = {
+            bookId: State.currentBook.bookId,
+            bookTitle: State.currentBook.title,
+            cover: State.currentBook.cover || '',
+            chapterIndex: State.currentChapterIndex,
+            chapterTitle: State.currentBook.chapters[State.currentChapterIndex]?.title || '',
+            scrollPercentage: pct,
+            timestamp: Date.now(),
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          await State.firebaseDb.doc(`users/${uid}/reading_progress/${State.currentBook.bookId}`).set(prog, { merge: true });
+          await State.firebaseDb.doc(`users/${uid}/recent/last_read`).set(prog, { merge: true });
+          console.log(`☁️ 成功由雲端保存《${State.currentBook.title}》進度！`);
+        }
+      } catch (err) {
+        console.error('🔥 Firestore 雲端寫入失敗:', err);
+        if (err.code === 'permission-denied') {
+          console.warn('⚠️ 存取被拒！請至 Firebase 控制台將 Firestore 規則 (Rules) 發布為允許已登入用戶讀寫。');
+        }
+      }
     }
 
     async function pullFromFirestore() {
       if (!State.firebaseUser || !State.firebaseDb) return;
       const uid = State.firebaseUser.uid;
       try {
+        console.log(`🔥 正在由 Firestore 同步帳號 [${uid}] 雲端資料庫...`);
+        // 1. 同步偏好設定
         const sSnap = await State.firebaseDb.doc(`users/${uid}/settings/reader`).get();
         if (sSnap.exists) {
           State.settings = { ...State.settings, ...sSnap.data() };
           applySettings();
         }
-      } catch (e) {}
+
+        // 2. 同步最近閱讀紀錄
+        const lastSnap = await State.firebaseDb.doc(`users/${uid}/recent/last_read`).get();
+        if (lastSnap.exists) {
+          const lData = lastSnap.data();
+          localStorage.setItem(`last_read_${uid}`, JSON.stringify(lData));
+        }
+
+        // 3. 同步所有書籍之進度集合 (解決跨裝置手機與電腦不互通問題)
+        const progSnap = await State.firebaseDb.collection(`users/${uid}/reading_progress`).get();
+        if (!progSnap.empty) {
+          progSnap.forEach(doc => {
+            const p = doc.data();
+            if (p && p.bookId) {
+              localStorage.setItem(`progress_${uid}_${p.bookId}`, JSON.stringify(p));
+            }
+          });
+        }
+
+        console.log(`✅ 雲端同步完成！成功載入 ${progSnap.size} 本小說之個人進度。`);
+        // 立即更新書架，展示該帳號在雲端的專屬閱讀進度
+        renderBookshelf();
+      } catch (err) {
+        console.error('🔥 Firestore 雲端拉取失敗:', err);
+        if (err.code === 'permission-denied') {
+          console.warn('⚠️ 存取被拒！請至 Firebase 控制台將 Firestore 規則 (Rules) 發布為允許已登入用戶讀寫。');
+        }
+      }
     }
 
     // --- PWA 支援 ---
