@@ -1,0 +1,13 @@
+[
+  {
+    "bookId": "jianlai",
+    "title": "劍來",
+    "author": "烽火戲諸侯",
+    "description": "大千世界，無奇不有。我陳平安，唯有一劍，可搬山，倒海，降妖，鎮魔，敕神，摘星，斷江，摧城，開天！",
+    "totalChapters": 1401,
+    "category": "玄幻修真",
+    "status": "連載中",
+    "indexUrl": "./chapters.json",
+    "chaptersBase": "./chapters/"
+  }
+]
