@@ -239,7 +239,7 @@
       <div class="flex-1 min-w-0 flex flex-col">
         
         <!-- Top Reader Navigation Bar -->
-        <header id="top-nav" class="ui-overlay fixed top-0 left-0 right-0 z-40 theme-bg-translucent theme-text backdrop-blur-md border-b border-black/10 dark:border-white/10 pt-safe px-3 sm:px-6 py-2.5 flex items-center justify-between shadow-xs">
+        <header id="top-nav" class="ui-overlay sticky top-0 z-40 theme-bg-translucent theme-text backdrop-blur-md border-b border-black/10 dark:border-white/10 pt-safe px-3 sm:px-6 py-2.5 flex items-center justify-between shadow-xs transition-all duration-200">
           <!-- Left: Back to Bookshelf + Mobile TOC Button -->
           <div class="flex items-center space-x-2 sm:space-x-3">
             <button id="btn-back-to-bookshelf" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center gap-1 text-sm font-semibold" title="返回書架">
@@ -287,7 +287,7 @@
         </header>
 
         <!-- 手機/抽屜式目錄 (全螢幕/遮罩式) -->
-        <div id="toc-drawer" class="fixed inset-0 z-50 transform -translate-x-full transition-transform duration-300 flex">
+        <div id="toc-drawer" class="lg:hidden fixed inset-0 z-50 transform -translate-x-full transition-transform duration-300 flex">
           <div id="toc-panel" class="w-[85vw] sm:w-96 max-w-md h-full theme-bg-solid theme-text border-r border-black/10 dark:border-white/10 shadow-2xl flex flex-col z-10">
             <div class="p-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between pt-safe">
               <div>
@@ -310,7 +310,7 @@
         </div>
 
         <!-- 閱讀主體畫布 -->
-        <main id="reader-container" class="flex-1 min-h-screen pt-20 pb-28 px-4 sm:px-8 transition-all duration-200">
+        <main id="reader-container" class="flex-1 min-h-screen pt-6 pb-28 px-4 sm:px-8 transition-all duration-200">
           <div id="content-wrapper" class="mx-auto max-w-3xl transition-all duration-200">
             
             <div class="mb-10 text-center border-b border-black/10 dark:border-white/10 pb-6">
@@ -1267,13 +1267,40 @@
       renderInto(DOM.desktopTocList);
     }
 
+    function toggleSidebarOrDrawer() {
+      if (window.innerWidth >= 1024) {
+        // 電腦版：展開或收折左側常駐目錄欄
+        DOM.desktopTocSidebar.classList.toggle('lg:hidden');
+        if (!DOM.desktopTocSidebar.classList.contains('lg:hidden')) {
+          renderAllTOCs(DOM.desktopTocSearch ? DOM.desktopTocSearch.value : '');
+          setTimeout(() => {
+            const activeItem = DOM.desktopTocList.querySelector('.bg-amber-500\\/15');
+            if (activeItem) activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }, 100);
+        }
+      } else {
+        // 手機版：切換滑出式抽屜
+        if (DOM.tocDrawer.classList.contains('-translate-x-full')) {
+          openTOC();
+        } else {
+          closeTOC();
+        }
+      }
+    }
+
     function openTOC() {
-      // 若是電腦螢幕且側邊欄被收折，則展開側邊欄
-      if (window.innerWidth >= 1024 && DOM.desktopTocSidebar.classList.contains('lg:hidden')) {
+      if (window.innerWidth >= 1024) {
+        // 電腦版：若側邊欄被收折則展開，並自動聚焦當前章節
         DOM.desktopTocSidebar.classList.remove('lg:hidden');
-        renderAllTOCs();
+        renderAllTOCs(DOM.desktopTocSearch ? DOM.desktopTocSearch.value : '');
+        setTimeout(() => {
+          const activeItem = DOM.desktopTocList.querySelector('.bg-amber-500\\/15');
+          if (activeItem) activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }, 100);
         return;
       }
+
+      // 手機版：滑出抽屜式目錄
       DOM.tocDrawer.classList.remove('-translate-x-full');
       renderAllTOCs(DOM.tocSearch.value);
 
@@ -1285,6 +1312,7 @@
         }
       }, 160);
     }
+
     function closeTOC() {
       DOM.tocDrawer.classList.add('-translate-x-full');
     }
@@ -1786,8 +1814,8 @@
         DOM.desktopTocSidebar.classList.toggle('lg:hidden');
       });
 
-      // 目錄控制
-      DOM.btnToggleToc.addEventListener('click', openTOC);
+      // 目錄控制 (電腦版切換側邊欄，手機版切換抽屜)
+      DOM.btnToggleToc.addEventListener('click', toggleSidebarOrDrawer);
       DOM.btnCloseToc.addEventListener('click', closeTOC);
       DOM.tocBackdrop.addEventListener('click', closeTOC);
       DOM.btnTocBottom.addEventListener('click', openTOC);
@@ -1891,7 +1919,7 @@
             break;
           case 'm':
           case 'M':
-            openTOC();
+            toggleSidebarOrDrawer();
             break;
           case 's':
           case 'S':
