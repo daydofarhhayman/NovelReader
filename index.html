@@ -396,10 +396,10 @@
       </div>
     </div>
     <div class="flex items-center gap-1 flex-shrink-0">
-      <button id="tts-btn-prev-para" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition" title="上一句 / 重聽這句">
+      <button id="tts-btn-prev-para" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition" title="上一段 / 重聽此段">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
-      <button id="tts-btn-next-para" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition" title="下一句">
+      <button id="tts-btn-next-para" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition" title="下一段">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
       <button id="tts-btn-open-settings" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition" title="說書聲音詳細設定">
@@ -501,8 +501,8 @@
 
           <div class="flex items-center justify-between pt-1">
             <div class="pr-2">
-              <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100">長句智慧呼吸斷句</span>
-              <p class="text-[10px] opacity-60 leading-tight">自動依照標點拆分短句，並在句尾留出適度呼吸停頓，徹底解決長句連讀含糊與吞字</p>
+              <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100">真人流暢說書語感</span>
+              <p class="text-[10px] opacity-60 leading-tight">整段自然連貫朗讀，保留語意脈絡與抑揚頓挫，完全消除生硬的句間停頓</p>
             </div>
             <input type="checkbox" id="settings-tts-smart-chunk" checked class="w-4 h-4 accent-amber-600 rounded flex-shrink-0 cursor-pointer">
           </div>
@@ -735,11 +735,9 @@
         paused: false,
         paragraphs: [],
         currentParaIndex: -1,
-        sentences: [],
-        currentSentenceIndex: 0,
         utterance: null,
         voices: [],
-        interSentenceTimer: null
+        keepAliveTimer: null
       }
     };
 
@@ -1464,49 +1462,30 @@
       return zh || State.tts.voices[0] || null;
     }
 
-    // 2. 智慧標點斷句演算法 (將長段落拆解為具備呼吸感的自然短句)
-    function splitParagraphIntoSentences(paragraphText, maxLen = 60) {
-      if (!paragraphText || !paragraphText.trim()) return [];
-      const text = convertText(paragraphText.trim());
-
-      // 主要標點拆句：句號、驚嘆號、問號、分號、換行、省略號、破折號，並保留結尾引號括弧
-      const mainRegex = /[^。！？!?；;\n…—]+(?:[。！？!?；;\n…—]+["'」』】）\)]*)?/g;
-      const raw = text.match(mainRegex);
-      if (!raw || raw.length === 0) return [text];
-
-      const result = [];
-      for (let s of raw) {
-        s = s.trim();
-        if (!s) continue;
-        // 若該句仍過長（例如超過 60 字），進一步依據逗號、頓號、冒號拆分
-        if (s.length > maxLen) {
-          const subRegex = /[^，,、：: ]+(?:[，,、：: ]+["'」』】）\)]*)?/g;
-          const sub = s.match(subRegex);
-          if (sub && sub.length > 0) {
-            for (let subItem of sub) {
-              subItem = subItem.trim();
-              if (subItem) result.push(subItem);
-            }
-          } else {
-            result.push(s);
-          }
-        } else {
-          result.push(s);
+    // 2. Chrome 與 Webkit 語音保活機制 (防止長文字被瀏覽器中斷)
+    function startKeepAlive() {
+      stopKeepAlive();
+      State.tts.keepAliveTimer = setInterval(() => {
+        if (State.tts.speaking && !State.tts.paused && State.tts.synth) {
+          State.tts.synth.pause();
+          State.tts.synth.resume();
         }
-      }
-      return result.length > 0 ? result : [text];
+      }, 10000);
     }
 
-    // 3. 聽書播放控制流程
-    function startTTSFromParagraph(index = 0, sentenceIndex = 0) {
-      if (!State.tts.synth) { alert('您的瀏覽器不支援語音合成。'); return; }
-      if (State.tts.interSentenceTimer) {
-        clearTimeout(State.tts.interSentenceTimer);
-        State.tts.interSentenceTimer = null;
+    function stopKeepAlive() {
+      if (State.tts.keepAliveTimer) {
+        clearInterval(State.tts.keepAliveTimer);
+        State.tts.keepAliveTimer = null;
       }
+    }
+
+    // 3. 流暢自然有聲朗讀播放流程 (以自然段落連續播音，杜絕 0.5 秒生硬頓點)
+    function startTTSFromParagraph(index = 0) {
+      if (!State.tts.synth) { alert('您的瀏覽器不支援語音合成。'); return; }
+      stopKeepAlive();
       State.tts.synth.cancel();
       State.tts.currentParaIndex = index;
-      State.tts.currentSentenceIndex = sentenceIndex;
       State.tts.speaking = true;
       State.tts.paused = false;
 
@@ -1514,18 +1493,20 @@
       DOM.ttsIconPlay.classList.add('hidden');
       DOM.ttsIconPause.classList.remove('hidden');
 
-      prepareAndSpeakParagraph();
+      startKeepAlive();
+      speakCurrentParagraph();
     }
 
-    function prepareAndSpeakParagraph() {
-      if (!State.tts.synth) return;
+    function speakCurrentParagraph() {
+      if (!State.tts.synth || !State.tts.speaking || State.tts.paused) return;
+
       if (State.tts.currentParaIndex >= State.tts.paragraphs.length) {
         if (State.settings.ttsAutoNext && State.currentChapterIndex + 1 < State.currentBook.chapters.length) {
           DOM.ttsStatusText.textContent = '本章完，播放下一章...';
           setTimeout(() => {
             loadChapter(State.currentChapterIndex + 1);
-            setTimeout(() => startTTSFromParagraph(0, 0), 900);
-          }, 600);
+            setTimeout(() => startTTSFromParagraph(0), 800);
+          }, 300);
         } else {
           stopTTS();
           DOM.ttsStatusText.textContent = '本章朗讀完畢';
@@ -1534,15 +1515,11 @@
       }
 
       const rawPara = State.tts.paragraphs[State.tts.currentParaIndex];
-      if (State.settings.ttsSmartChunk !== false) {
-        State.tts.sentences = splitParagraphIntoSentences(rawPara);
-      } else {
-        State.tts.sentences = [convertText(rawPara)];
-      }
+      const text = convertText(rawPara.trim());
+      const pIdx = State.tts.currentParaIndex + 1;
+      const pTotal = State.tts.paragraphs.length;
 
-      if (State.tts.currentSentenceIndex >= State.tts.sentences.length) {
-        State.tts.currentSentenceIndex = 0;
-      }
+      DOM.ttsStatusText.textContent = `[${pIdx}/${pTotal}段] ${text.substring(0, 18)}${text.length > 18 ? '...' : ''}`;
 
       // 高亮當前朗讀段落並平滑滾動至視野中心
       document.querySelectorAll('.novel-paragraph').forEach((el, idx) => {
@@ -1553,40 +1530,7 @@
         }
       });
 
-      speakCurrentSentence();
-    }
-
-    function speakCurrentSentence() {
-      if (!State.tts.synth || !State.tts.speaking || State.tts.paused) return;
-      if (State.tts.interSentenceTimer) {
-        clearTimeout(State.tts.interSentenceTimer);
-        State.tts.interSentenceTimer = null;
-      }
-
-      if (State.tts.currentSentenceIndex >= State.tts.sentences.length) {
-        // 本段落所有句子已讀完，進入下一段落
-        State.tts.currentParaIndex++;
-        State.tts.currentSentenceIndex = 0;
-        // 段落轉換留 260ms 自然停頓換氣
-        State.tts.interSentenceTimer = setTimeout(() => {
-          if (State.tts.speaking && !State.tts.paused) {
-            prepareAndSpeakParagraph();
-          }
-        }, 260);
-        return;
-      }
-
-      const sentenceText = State.tts.sentences[State.tts.currentSentenceIndex];
-      const pIdx = State.tts.currentParaIndex + 1;
-      const pTotal = State.tts.paragraphs.length;
-      const sIdx = State.tts.currentSentenceIndex + 1;
-      const sTotal = State.tts.sentences.length;
-
-      DOM.ttsStatusText.textContent = `[${pIdx}/${pTotal}段 · ${sIdx}/${sTotal}句] ${sentenceText.substring(0, 16)}${sentenceText.length > 16 ? '...' : ''}`;
-
-      State.tts.synth.cancel();
-
-      const utter = new SpeechSynthesisUtterance(sentenceText);
+      const utter = new SpeechSynthesisUtterance(text);
       utter.rate = State.settings.ttsRate || 1.0;
       utter.pitch = State.settings.ttsPitch || 1.0;
 
@@ -1600,13 +1544,9 @@
 
       utter.onend = () => {
         if (State.tts.speaking && !State.tts.paused) {
-          State.tts.currentSentenceIndex++;
-          // 句子之間留 170ms 呼吸微停頓，語速從容不再機械連讀
-          State.tts.interSentenceTimer = setTimeout(() => {
-            if (State.tts.speaking && !State.tts.paused) {
-              speakCurrentSentence();
-            }
-          }, 170);
+          State.tts.currentParaIndex++;
+          // 無縫無延遲進入下一段落，完全不等待，徹底消除 0.5 秒斷續感
+          speakCurrentParagraph();
         }
       };
 
@@ -1614,8 +1554,8 @@
         if (e.error === 'interrupted' || e.error === 'canceled') return;
         console.warn('TTS utterance error:', e);
         if (State.tts.speaking && !State.tts.paused) {
-          State.tts.currentSentenceIndex++;
-          State.tts.interSentenceTimer = setTimeout(() => speakCurrentSentence(), 200);
+          State.tts.currentParaIndex++;
+          speakCurrentParagraph();
         }
       };
 
@@ -1625,10 +1565,7 @@
 
     function pauseTTS() {
       if (State.tts.synth && State.tts.speaking) {
-        if (State.tts.interSentenceTimer) {
-          clearTimeout(State.tts.interSentenceTimer);
-          State.tts.interSentenceTimer = null;
-        }
+        stopKeepAlive();
         State.tts.synth.cancel();
         State.tts.paused = true;
         DOM.ttsIconPlay.classList.remove('hidden');
@@ -1642,17 +1579,15 @@
         State.tts.paused = false;
         DOM.ttsIconPlay.classList.add('hidden');
         DOM.ttsIconPause.classList.remove('hidden');
-        speakCurrentSentence();
+        startKeepAlive();
+        speakCurrentParagraph();
       } else {
-        startTTSFromParagraph(State.tts.currentParaIndex >= 0 ? State.tts.currentParaIndex : 0, 0);
+        startTTSFromParagraph(State.tts.currentParaIndex >= 0 ? State.tts.currentParaIndex : 0);
       }
     }
 
     function stopTTS() {
-      if (State.tts.interSentenceTimer) {
-        clearTimeout(State.tts.interSentenceTimer);
-        State.tts.interSentenceTimer = null;
-      }
+      stopKeepAlive();
       if (State.tts.synth) State.tts.synth.cancel();
       State.tts.speaking = false;
       State.tts.paused = false;
@@ -1662,57 +1597,31 @@
       DOM.ttsPlayerCard.classList.add('hidden');
     }
 
-    function ttsPrevSentence() {
+    function ttsPrevPara() {
       if (!State.tts.synth) return;
-      if (State.tts.interSentenceTimer) {
-        clearTimeout(State.tts.interSentenceTimer);
-        State.tts.interSentenceTimer = null;
-      }
       State.tts.synth.cancel();
-
-      if (State.tts.currentSentenceIndex > 0) {
-        State.tts.currentSentenceIndex--;
-        speakCurrentSentence();
-      } else if (State.tts.currentParaIndex > 0) {
+      if (State.tts.currentParaIndex > 0) {
         State.tts.currentParaIndex--;
-        const prevPara = State.tts.paragraphs[State.tts.currentParaIndex];
-        State.tts.sentences = (State.settings.ttsSmartChunk !== false)
-          ? splitParagraphIntoSentences(prevPara)
-          : [convertText(prevPara)];
-        State.tts.currentSentenceIndex = Math.max(0, State.tts.sentences.length - 1);
-        prepareAndSpeakParagraph();
       }
+      speakCurrentParagraph();
     }
 
-    function ttsNextSentence() {
+    function ttsNextPara() {
       if (!State.tts.synth) return;
-      if (State.tts.interSentenceTimer) {
-        clearTimeout(State.tts.interSentenceTimer);
-        State.tts.interSentenceTimer = null;
-      }
       State.tts.synth.cancel();
-
-      if (State.tts.currentSentenceIndex < State.tts.sentences.length - 1) {
-        State.tts.currentSentenceIndex++;
-        speakCurrentSentence();
-      } else if (State.tts.currentParaIndex < State.tts.paragraphs.length - 1) {
+      if (State.tts.currentParaIndex < State.tts.paragraphs.length - 1) {
         State.tts.currentParaIndex++;
-        State.tts.currentSentenceIndex = 0;
-        prepareAndSpeakParagraph();
       }
+      speakCurrentParagraph();
     }
 
     function previewVoice() {
       if (!State.tts.synth) return;
-      if (State.tts.interSentenceTimer) {
-        clearTimeout(State.tts.interSentenceTimer);
-        State.tts.interSentenceTimer = null;
-      }
       State.tts.synth.cancel();
 
       const sample = State.isTraditional
-        ? '這是一段 AI 說書試聽。自然語音抑揚頓挫，長句分段更清晰。'
-        : '这是一段 AI 说书试听。自然语音抑扬顿挫，长句分段更清晰。';
+        ? '這是一段 AI 說書試聽。語調自然流暢，節奏連貫如真人說話。'
+        : '这是一段 AI 说书试听。语调自然流畅，节奏连贯如真人说话。';
       const utter = new SpeechSynthesisUtterance(sample);
       utter.rate = State.settings.ttsRate || 1.0;
       utter.pitch = State.settings.ttsPitch || 1.0;
@@ -2087,7 +1996,7 @@
         } else if (State.tts.speaking && State.tts.paused) {
           resumeTTS();
         } else {
-          startTTSFromParagraph(State.tts.currentParaIndex >= 0 ? State.tts.currentParaIndex : 0, 0);
+          startTTSFromParagraph(State.tts.currentParaIndex >= 0 ? State.tts.currentParaIndex : 0);
         }
       });
       DOM.ttsBtnPlay.addEventListener('click', () => {
@@ -2099,7 +2008,7 @@
         State.settings.ttsRate = parseFloat(e.target.value);
         applySettings();
         if (State.tts.speaking && !State.tts.paused) {
-          speakCurrentSentence();
+          if (State.tts.synth) State.tts.synth.cancel(); speakCurrentParagraph();
         }
       });
 
@@ -2108,7 +2017,7 @@
           State.settings.ttsVoiceURI = e.target.value;
           applySettings();
           if (State.tts.speaking && !State.tts.paused) {
-            speakCurrentSentence();
+            if (State.tts.synth) State.tts.synth.cancel(); speakCurrentParagraph();
           }
         });
       }
@@ -2126,8 +2035,8 @@
         applySettings();
       });
 
-      DOM.ttsBtnPrevPara.addEventListener('click', ttsPrevSentence);
-      DOM.ttsBtnNextPara.addEventListener('click', ttsNextSentence);
+      DOM.ttsBtnPrevPara.addEventListener('click', ttsPrevPara);
+      DOM.ttsBtnNextPara.addEventListener('click', ttsNextPara);
 
       // 設定彈窗內的 TTS 控制項綁定
       if (DOM.settingsTtsVoice) {
@@ -2136,7 +2045,7 @@
           if (DOM.ttsVoiceSelectQuick) DOM.ttsVoiceSelectQuick.value = e.target.value;
           applySettings();
           if (State.tts.speaking && !State.tts.paused) {
-            speakCurrentSentence();
+            if (State.tts.synth) State.tts.synth.cancel(); speakCurrentParagraph();
           }
         });
       }
@@ -2149,7 +2058,7 @@
           if (DOM.ttsRateSelect) DOM.ttsRateSelect.value = val.toString();
           applySettings();
           if (State.tts.speaking && !State.tts.paused) {
-            speakCurrentSentence();
+            if (State.tts.synth) State.tts.synth.cancel(); speakCurrentParagraph();
           }
         });
       }
@@ -2161,7 +2070,7 @@
           if (DOM.ttsPitchLabel) DOM.ttsPitchLabel.textContent = val.toFixed(2);
           applySettings();
           if (State.tts.speaking && !State.tts.paused) {
-            speakCurrentSentence();
+            if (State.tts.synth) State.tts.synth.cancel(); speakCurrentParagraph();
           }
         });
       }
