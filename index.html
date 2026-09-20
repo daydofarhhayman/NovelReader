@@ -47,6 +47,21 @@
   <script src="./firebase-config.js"></script>
 
   <style>
+    :root {
+      --theme-bg: #FAF9F6;
+      --theme-bg-translucent: rgba(250, 249, 246, 0.94);
+      --theme-text: #2C302E;
+    }
+    .theme-bg-solid {
+      background-color: var(--theme-bg, #FAF9F6) !important;
+    }
+    .theme-bg-translucent {
+      background-color: var(--theme-bg-translucent, rgba(250, 249, 246, 0.94)) !important;
+    }
+    .theme-text {
+      color: var(--theme-text, #2C302E) !important;
+    }
+
     /* 滾動條樣式 */
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.25); border-radius: 9999px; }
@@ -100,7 +115,7 @@
   <!-- ========================================================================= -->
   <div id="view-bookshelf" class="min-h-screen flex flex-col">
     <!-- Top Nav -->
-    <header class="sticky top-0 z-30 bg-inherit/90 backdrop-blur-md border-b border-black/10 dark:border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xs pt-safe">
+    <header class="sticky top-0 z-30 theme-bg-translucent theme-text backdrop-blur-md border-b border-black/10 dark:border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xs pt-safe">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center font-black text-xl shadow-md">
           閱
@@ -197,7 +212,7 @@
     <div class="flex min-h-screen relative">
       
       <!-- ==================== 電腦版：左側常駐/可釘選章節目錄側邊欄 ==================== -->
-      <aside id="desktop-toc-sidebar" class="hidden lg:flex flex-col w-80 h-screen sticky top-0 border-r border-black/10 dark:border-white/10 bg-inherit/70 backdrop-blur-md z-30 transition-all duration-300">
+      <aside id="desktop-toc-sidebar" class="hidden lg:flex flex-col w-80 h-screen sticky top-0 border-r border-black/10 dark:border-white/10 theme-bg-solid theme-text z-30 transition-all duration-300">
         <div class="p-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="font-bold text-base">章節目錄</span>
@@ -224,7 +239,7 @@
       <div class="flex-1 min-w-0 flex flex-col">
         
         <!-- Top Reader Navigation Bar -->
-        <header id="top-nav" class="ui-overlay fixed top-0 left-0 right-0 z-40 bg-inherit/90 backdrop-blur-md border-b border-black/10 dark:border-white/10 pt-safe px-3 sm:px-6 py-2.5 flex items-center justify-between shadow-xs">
+        <header id="top-nav" class="ui-overlay fixed top-0 left-0 right-0 z-40 theme-bg-translucent theme-text backdrop-blur-md border-b border-black/10 dark:border-white/10 pt-safe px-3 sm:px-6 py-2.5 flex items-center justify-between shadow-xs">
           <!-- Left: Back to Bookshelf + Mobile TOC Button -->
           <div class="flex items-center space-x-2 sm:space-x-3">
             <button id="btn-back-to-bookshelf" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center gap-1 text-sm font-semibold" title="返回書架">
@@ -273,7 +288,7 @@
 
         <!-- 手機/抽屜式目錄 (全螢幕/遮罩式) -->
         <div id="toc-drawer" class="fixed inset-0 z-50 transform -translate-x-full transition-transform duration-300 flex">
-          <div id="toc-panel" class="w-80 sm:w-96 max-w-[85vw] h-full bg-inherit border-r border-black/10 dark:border-white/10 shadow-2xl flex flex-col z-10">
+          <div id="toc-panel" class="w-[85vw] sm:w-96 max-w-md h-full theme-bg-solid theme-text border-r border-black/10 dark:border-white/10 shadow-2xl flex flex-col z-10">
             <div class="p-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between pt-safe">
               <div>
                 <h2 class="font-bold text-lg">章節目錄</h2>
@@ -291,7 +306,7 @@
             </div>
             <div id="toc-list" class="flex-1 overflow-y-auto p-2 space-y-1 divide-y divide-black/5 dark:divide-white/5"></div>
           </div>
-          <div id="toc-backdrop" class="flex-1 bg-black/40 backdrop-blur-xs"></div>
+          <div id="toc-backdrop" class="flex-1 bg-black/60 backdrop-blur-xs cursor-pointer"></div>
         </div>
 
         <!-- 閱讀主體畫布 -->
@@ -332,7 +347,7 @@
         </main>
 
         <!-- 手機版浮動底部導航條 -->
-        <div id="mobile-bottom-bar" class="ui-overlay fixed bottom-0 left-0 right-0 z-40 bg-inherit/90 backdrop-blur-md border-t border-black/10 dark:border-white/10 pb-safe pt-2 px-4 flex items-center justify-between shadow-lg md:hidden">
+        <div id="mobile-bottom-bar" class="ui-overlay fixed bottom-0 left-0 right-0 z-40 theme-bg-translucent theme-text backdrop-blur-md border-t border-black/10 dark:border-white/10 pb-safe pt-2 px-4 flex items-center justify-between shadow-lg md:hidden">
           <div class="w-full flex flex-col gap-1">
             <div class="flex items-center justify-between text-xs px-1 opacity-75">
               <button id="btn-mobile-prev" class="hover:underline font-medium">上一章</button>
@@ -775,6 +790,7 @@
       btnDesktopTocCollapse: document.getElementById('btn-desktop-toc-collapse'),
       // Mobile Drawer TOC
       tocDrawer: document.getElementById('toc-drawer'),
+      tocPanel: document.getElementById('toc-panel'),
       tocList: document.getElementById('toc-list'),
       tocSearch: document.getElementById('toc-search'),
       tocSummary: document.getElementById('toc-summary'),
@@ -887,6 +903,33 @@
       DOM.body.style.backgroundColor = t.bg;
       DOM.body.style.color = t.text;
       document.documentElement.classList.toggle('dark', t.isDark);
+
+      // 動態更新全域主題色與半透明顏色變數，徹底根除抽屜與導航條透明穿透重疊
+      document.documentElement.style.setProperty('--theme-bg', t.bg);
+      document.documentElement.style.setProperty('--theme-text', t.text);
+      const hex = t.bg.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      const translucentBg = `rgba(${r}, ${g}, ${b}, 0.95)`;
+      document.documentElement.style.setProperty('--theme-bg-translucent', translucentBg);
+
+      if (DOM.tocPanel) {
+        DOM.tocPanel.style.backgroundColor = t.bg;
+        DOM.tocPanel.style.color = t.text;
+      }
+      if (DOM.desktopTocSidebar) {
+        DOM.desktopTocSidebar.style.backgroundColor = t.bg;
+        DOM.desktopTocSidebar.style.color = t.text;
+      }
+      if (DOM.topNav) {
+        DOM.topNav.style.backgroundColor = translucentBg;
+        DOM.topNav.style.color = t.text;
+      }
+      if (DOM.mobileBottomBar) {
+        DOM.mobileBottomBar.style.backgroundColor = translucentBg;
+        DOM.mobileBottomBar.style.color = t.text;
+      }
 
       document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.classList.toggle('ring-2', btn.dataset.theme === s.theme);
@@ -1233,6 +1276,14 @@
       }
       DOM.tocDrawer.classList.remove('-translate-x-full');
       renderAllTOCs(DOM.tocSearch.value);
+
+      // 自動將當前閱讀中的章節平滑置中滾動
+      setTimeout(() => {
+        const activeItem = DOM.tocList.querySelector('.bg-amber-500\\/15');
+        if (activeItem) {
+          activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      }, 160);
     }
     function closeTOC() {
       DOM.tocDrawer.classList.add('-translate-x-full');
