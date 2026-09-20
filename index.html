@@ -1201,8 +1201,8 @@
       // Google 登入按鈕
       DOM.btnGoogleLogin.addEventListener('click', () => {
         if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) {
-          alert('提示：管理員尚未在後台「firebase-config.js」中填入 Firebase API 金鑰。
-填入後即可直接啟用 Google 登入！');
+          alert(`提示：管理員尚未在後台「firebase-config.js」中填入 Firebase API 金鑰。
+填入後即可直接啟用 Google 登入！`);
           return;
         }
         if (State.firebaseUser) {
