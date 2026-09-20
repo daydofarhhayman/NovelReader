@@ -888,9 +888,10 @@
           DOM.recentChapterTitle.textContent = convertText(last.chapterTitle || '');
           DOM.recentUpdateTime.textContent = `上次閱讀時間: ${new Date(last.timestamp).toLocaleDateString()}`;
           if (DOM.recentCoverBox) {
-            DOM.recentCoverBox.innerHTML = last.cover 
-              ? `<img src="${last.cover}" class="w-full h-full object-cover">`
-              : `<span class="font-bold">讀</span>`;
+            DOM.recentCoverBox.innerHTML = `
+              <span class="font-bold select-none">讀</span>
+              ${last.cover ? `<img src="${last.cover}" class="absolute inset-0 w-full h-full object-cover z-10" onerror="this.remove()">` : ''}
+            `;
           }
           DOM.btnResumeRecent.onclick = () => openReader(last.bookId, last.chapterIndex, last.scrollPct);
         } catch (e) {}
@@ -918,17 +919,15 @@
           <div>
             <div class="flex gap-4">
               <!-- 封面：有圖片時顯示圖片，無圖片時顯示質感燙金書脊 -->
+              <!-- 封面：底層固定為燙金漸層書脊，若有圖片且有效則覆蓋其上，圖片失效(onerror)時自動移除顯示底層書脊 -->
               <div class="w-20 h-28 rounded-xl flex-shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-md">
-                ${book.cover ? `
-                  <img src="${book.cover}" alt="${convertText(book.title)}" class="w-full h-full object-cover">
-                ` : `
-                  <div class="book-cover-gradient w-full h-full flex flex-col items-center justify-center p-2 text-white text-center relative">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold z-10">NOVEL</span>
-                    <h3 class="font-extrabold text-sm tracking-wider leading-tight line-clamp-2 my-1 z-10">${convertText(book.title)}</h3>
-                    <span class="text-[9px] opacity-70 z-10 truncate max-w-full">${convertText(book.author)}</span>
-                  </div>
-                `}
+                <div class="book-cover-gradient absolute inset-0 w-full h-full flex flex-col items-center justify-center p-2 text-white text-center select-none">
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <span class="text-[9px] uppercase tracking-widest text-amber-400 font-bold z-10">NOVEL</span>
+                  <h3 class="font-extrabold text-xs tracking-wider leading-tight line-clamp-2 my-1 z-10">${convertText(book.title)}</h3>
+                  <span class="text-[8px] opacity-70 z-10 truncate max-w-full">${convertText(book.author)}</span>
+                </div>
+                ${book.cover ? `<img src="${book.cover}" alt="" class="absolute inset-0 w-full h-full object-cover z-20" onerror="this.remove()">` : ''}
               </div>
 
               <div class="flex-1 min-w-0">
