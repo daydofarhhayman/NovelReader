@@ -59,9 +59,11 @@
       position: relative;
     }
     .novel-paragraph.tts-active {
-      background-color: rgba(234, 179, 8, 0.25) !important;
+      background-color: rgba(234, 179, 8, 0.22) !important;
+      border-left: 3.5px solid #d97706;
       border-radius: 4px;
-      padding: 2px 4px;
+      padding: 2px 8px;
+      transition: background-color 0.25s ease, border-left-color 0.25s ease;
     }
 
     /* 平滑過渡動畫 */
@@ -349,35 +351,46 @@
   <!-- ========================================================================= -->
   <!-- FLOATING TTS AUDIO PLAYER                                                 -->
   <!-- ========================================================================= -->
-  <div id="tts-player-card" class="fixed bottom-16 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-black/15 dark:border-white/15 shadow-2xl rounded-2xl p-3 sm:px-5 flex items-center gap-3 transition-all duration-300 hidden max-w-lg w-[92vw]">
-    <button id="tts-btn-play" class="p-2.5 rounded-full bg-amber-600 text-white hover:bg-amber-700 shadow flex-shrink-0">
+  <div id="tts-player-card" class="fixed bottom-16 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-black/15 dark:border-white/15 shadow-2xl rounded-2xl p-2.5 sm:px-5 flex items-center gap-2.5 sm:gap-3 transition-all duration-300 hidden max-w-lg w-[94vw] sm:w-[90vw]">
+    <button id="tts-btn-play" class="p-2.5 rounded-full bg-amber-600 text-white hover:bg-amber-700 shadow-md flex-shrink-0 transition active:scale-95" title="播放 / 暫停">
       <svg id="tts-icon-play" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       <svg id="tts-icon-pause" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
     </button>
     <div class="flex-1 min-w-0">
-      <div class="text-xs font-semibold truncate text-zinc-800 dark:text-zinc-200" id="tts-status-text">準備朗讀...</div>
-      <div class="flex items-center gap-2 mt-0.5">
-        <select id="tts-rate-select" class="text-xs bg-black/5 dark:bg-white/10 rounded px-1.5 py-0.5 border border-black/10 dark:border-white/10 text-zinc-700 dark:text-zinc-300 focus:outline-none">
+      <div class="text-xs font-semibold truncate text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
+        <span id="tts-status-text" class="truncate">準備朗讀...</span>
+      </div>
+      <div class="flex items-center gap-1.5 sm:gap-2 mt-1">
+        <select id="tts-voice-select-quick" class="text-[11px] sm:text-xs bg-black/5 dark:bg-white/10 rounded px-1.5 py-0.5 border border-black/10 dark:border-white/10 text-zinc-700 dark:text-zinc-300 focus:outline-none max-w-[110px] sm:max-w-[150px] truncate" title="切換說書人">
+          <option value="">載入語音...</option>
+        </select>
+        <select id="tts-rate-select" class="text-[11px] sm:text-xs bg-black/5 dark:bg-white/10 rounded px-1 py-0.5 border border-black/10 dark:border-white/10 text-zinc-700 dark:text-zinc-300 focus:outline-none" title="語速">
           <option value="0.75">0.75x</option>
+          <option value="0.85">0.85x</option>
           <option value="1.0" selected>1.0x</option>
+          <option value="1.15">1.15x</option>
           <option value="1.25">1.25x</option>
           <option value="1.5">1.5x</option>
           <option value="1.75">1.75x</option>
           <option value="2.0">2.0x</option>
         </select>
-        <label class="text-[11px] opacity-70 flex items-center gap-1 cursor-pointer select-none">
-          <input type="checkbox" id="tts-auto-next" checked class="rounded accent-amber-600"> 自動跳下一章
+        <label class="text-[11px] opacity-75 hidden sm:flex items-center gap-1 cursor-pointer select-none">
+          <input type="checkbox" id="tts-auto-next" checked class="rounded accent-amber-600"> 連播下一章
         </label>
       </div>
     </div>
-    <div class="flex items-center gap-1">
-      <button id="tts-btn-prev-para" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100" title="上一句">
+    <div class="flex items-center gap-1 flex-shrink-0">
+      <button id="tts-btn-prev-para" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition" title="上一句 / 重聽這句">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
-      <button id="tts-btn-next-para" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100" title="下一句">
+      <button id="tts-btn-next-para" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition" title="下一句">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
-      <button id="tts-btn-close" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100" title="關閉聽書">
+      <button id="tts-btn-open-settings" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition" title="說書聲音詳細設定">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+      </button>
+      <button id="tts-btn-close" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition" title="關閉聽書">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -433,6 +446,50 @@
             <button id="btn-cc-simplified" class="p-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5">
               <span>簡體中文</span>
             </button>
+          </div>
+        </div>
+
+        <!-- AI 聽書與說書人聲音設定 -->
+        <div class="pt-3 border-t border-black/10 dark:border-white/10 space-y-3.5" id="settings-tts-section">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-100">
+              <span>🎙️</span><span>AI 說書人與聽書設定</span>
+            </span>
+            <button id="btn-tts-preview" class="text-xs px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold transition flex items-center gap-1 shadow-2xs">
+              <span>▶</span><span>試聽聲音</span>
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold opacity-75 mb-1.5">說書人聲音角色 (推薦標註 ✨ 之自然 AI 語音)</label>
+            <select id="settings-tts-voice" class="w-full text-xs p-2.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-1 focus:ring-amber-500">
+              <option value="">正在載入系統可用語音庫...</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between items-center text-[11px] font-semibold opacity-75 mb-1">
+                <span>說書語速</span>
+                <span id="tts-rate-label" class="font-mono text-amber-600">1.0x</span>
+              </div>
+              <input type="range" id="settings-tts-rate" min="0.6" max="2.0" step="0.05" value="1.0" class="w-full accent-amber-600 cursor-pointer">
+            </div>
+            <div>
+              <div class="flex justify-between items-center text-[11px] font-semibold opacity-75 mb-1">
+                <span>音調沉浮 (低沉 ⟷ 清脆)</span>
+                <span id="tts-pitch-label" class="font-mono text-amber-600">1.00</span>
+              </div>
+              <input type="range" id="settings-tts-pitch" min="0.75" max="1.25" step="0.05" value="1.0" class="w-full accent-amber-600 cursor-pointer">
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <div class="pr-2">
+              <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100">長句智慧呼吸斷句</span>
+              <p class="text-[10px] opacity-60 leading-tight">自動依照標點拆分短句，並在句尾留出適度呼吸停頓，徹底解決長句連讀含糊與吞字</p>
+            </div>
+            <input type="checkbox" id="settings-tts-smart-chunk" checked class="w-4 h-4 accent-amber-600 rounded flex-shrink-0 cursor-pointer">
           </div>
         </div>
 
@@ -650,7 +707,12 @@
         lineHeight: 1.9,
         contentWidth: 'max-w-3xl',
         isDualCol: false,
-        enableTapTurn: true
+        enableTapTurn: true,
+        ttsRate: 1.0,
+        ttsPitch: 1.0,
+        ttsVoiceURI: '',
+        ttsSmartChunk: true,
+        ttsAutoNext: true
       },
       tts: {
         synth: window.speechSynthesis || null,
@@ -658,9 +720,11 @@
         paused: false,
         paragraphs: [],
         currentParaIndex: -1,
+        sentences: [],
+        currentSentenceIndex: 0,
         utterance: null,
-        rate: 1.0,
-        autoNext: true
+        voices: [],
+        interSentenceTimer: null
       }
     };
 
@@ -750,10 +814,20 @@
       ttsIconPause: document.getElementById('tts-icon-pause'),
       ttsStatusText: document.getElementById('tts-status-text'),
       ttsRateSelect: document.getElementById('tts-rate-select'),
+      ttsVoiceSelectQuick: document.getElementById('tts-voice-select-quick'),
       ttsAutoNext: document.getElementById('tts-auto-next'),
       ttsBtnPrevPara: document.getElementById('tts-btn-prev-para'),
       ttsBtnNextPara: document.getElementById('tts-btn-next-para'),
+      ttsBtnOpenSettings: document.getElementById('tts-btn-open-settings'),
       ttsBtnClose: document.getElementById('tts-btn-close'),
+      // Settings Modal TTS Controls
+      settingsTtsVoice: document.getElementById('settings-tts-voice'),
+      settingsTtsRate: document.getElementById('settings-tts-rate'),
+      ttsRateLabel: document.getElementById('tts-rate-label'),
+      settingsTtsPitch: document.getElementById('settings-tts-pitch'),
+      ttsPitchLabel: document.getElementById('tts-pitch-label'),
+      settingsTtsSmartChunk: document.getElementById('settings-tts-smart-chunk'),
+      btnTtsPreview: document.getElementById('btn-tts-preview'),
       // Stats
       statsTimer: document.getElementById('stats-timer'),
       statsChapProgress: document.getElementById('stats-chap-progress'),
@@ -866,6 +940,19 @@
             : 'border-black/10 dark:border-white/10 opacity-70 hover:opacity-100'
         }`;
       }
+
+      // 同步聽書 TTS 設定到 UI
+      const ttsRate = State.settings.ttsRate || 1.0;
+      const ttsPitch = State.settings.ttsPitch || 1.0;
+      if (DOM.settingsTtsRate) DOM.settingsTtsRate.value = ttsRate;
+      if (DOM.ttsRateLabel) DOM.ttsRateLabel.textContent = `${ttsRate.toFixed(1)}x`;
+      if (DOM.ttsRateSelect) DOM.ttsRateSelect.value = ttsRate.toString();
+      if (DOM.settingsTtsPitch) DOM.settingsTtsPitch.value = ttsPitch;
+      if (DOM.ttsPitchLabel) DOM.ttsPitchLabel.textContent = ttsPitch.toFixed(2);
+      if (DOM.settingsTtsSmartChunk) DOM.settingsTtsSmartChunk.checked = State.settings.ttsSmartChunk !== false;
+      if (DOM.ttsAutoNext) DOM.ttsAutoNext.checked = State.settings.ttsAutoNext !== false;
+      if (DOM.settingsTtsVoice && State.settings.ttsVoiceURI) DOM.settingsTtsVoice.value = State.settings.ttsVoiceURI;
+      if (DOM.ttsVoiceSelectQuick && State.settings.ttsVoiceURI) DOM.ttsVoiceSelectQuick.value = State.settings.ttsVoiceURI;
 
       localStorage.setItem('novel_reader_settings', JSON.stringify(State.settings));
       syncToFirestore();
@@ -1151,27 +1238,168 @@
       DOM.tocDrawer.classList.add('-translate-x-full');
     }
 
-    // --- TTS 聽書引擎 ---
-    function startTTSFromParagraph(index = 0) {
+    // --- TTS 高階智慧有聲說書引擎 ---
+
+    // 1. 初始化與篩選高品質自然語音庫 (優先排序 Neural / Natural / Google 語音)
+    function initTTSVoices() {
+      if (!State.tts.synth) return;
+      const rawVoices = State.tts.synth.getVoices() || [];
+      if (!rawVoices || rawVoices.length === 0) return;
+
+      function scoreVoice(v) {
+        const name = v.name || '';
+        const lang = v.lang || '';
+        const isChinese = /zh|cmn|chinese/i.test(lang) || /中文|國語|普通话|chinese|taiwan|cantonese/i.test(name);
+        if (!isChinese) return -100;
+
+        let score = 50;
+        // 微軟 Edge 或雲端神經自然語音
+        if (/natural|neural|online/i.test(name)) score += 50;
+        else if (/enhanced/i.test(name)) score += 40;
+        else if (/google/i.test(name)) score += 35;
+
+        // 符合繁簡偏好加分
+        const preferTW = State.isTraditional;
+        const isTW = /tw|taiwan|臺灣|台灣/i.test(lang) || /tw|taiwan|臺灣|台灣|Hsiao|YunJhe/i.test(name);
+        const isCN = /cn|mainland|普通话/i.test(lang) || /cn|mainland|普通话|Xiaoxiao|Yunxi|Yunjian/i.test(name);
+
+        if (preferTW && isTW) score += 20;
+        if (!preferTW && isCN) score += 20;
+
+        // 知名優質說書主播 (如微軟曉曉、雲希、曉臻、雲哲)
+        if (/HsiaoChen|Yunxi|Xiaoxiao|YunJhe/i.test(name)) score += 10;
+        return score;
+      }
+
+      // 依品質分數由高至低排序
+      const sorted = [...rawVoices].sort((a, b) => scoreVoice(b) - scoreVoice(a));
+      State.tts.voices = sorted;
+
+      const populateSelect = (selectEl, isShort = false) => {
+        if (!selectEl) return;
+        selectEl.innerHTML = '';
+
+        let foundSelected = false;
+        sorted.forEach(v => {
+          const score = scoreVoice(v);
+          // 浮動卡片只展示中文語音，保持介面簡潔
+          if (isShort && score < 0) return;
+
+          const opt = document.createElement('option');
+          opt.value = v.voiceURI;
+
+          let prefix = '';
+          if (/natural|neural|online/i.test(v.name)) prefix = '✨ ';
+          else if (/enhanced/i.test(v.name)) prefix = '💎 ';
+          else if (/google/i.test(v.name)) prefix = '⭐ ';
+
+          let cleanName = v.name
+            .replace(/Microsoft\s*/i, '')
+            .replace(/Online\s*\(Natural\)\s*-\s*/i, '')
+            .replace(/\s*Desktop\s*-\s*/i, ' - ');
+
+          if (isShort) {
+            cleanName = cleanName.split('-')[0].trim();
+            opt.textContent = `${prefix}${cleanName}`;
+          } else {
+            const tag = (score > 60) ? '[推薦] ' : '';
+            opt.textContent = `${prefix}${tag}${cleanName} (${v.lang})`;
+          }
+
+          if (State.settings.ttsVoiceURI && v.voiceURI === State.settings.ttsVoiceURI) {
+            opt.selected = true;
+            foundSelected = true;
+          }
+          selectEl.appendChild(opt);
+        });
+
+        // 若尚未設定過語音，預設選取得分最高的自然語音
+        if (!foundSelected && sorted.length > 0 && scoreVoice(sorted[0]) > 0) {
+          State.settings.ttsVoiceURI = sorted[0].voiceURI;
+          selectEl.value = sorted[0].voiceURI;
+        }
+      };
+
+      populateSelect(DOM.settingsTtsVoice, false);
+      populateSelect(DOM.ttsVoiceSelectQuick, true);
+    }
+
+    function getActiveVoice() {
+      if (!State.tts.voices || State.tts.voices.length === 0) {
+        if (State.tts.synth) State.tts.voices = State.tts.synth.getVoices() || [];
+      }
+      if (!State.tts.voices || State.tts.voices.length === 0) return null;
+
+      if (State.settings.ttsVoiceURI) {
+        const found = State.tts.voices.find(v => v.voiceURI === State.settings.ttsVoiceURI);
+        if (found) return found;
+      }
+      const zh = State.tts.voices.find(v => /zh|cmn/i.test(v.lang) || /中文|國語/i.test(v.name));
+      return zh || State.tts.voices[0] || null;
+    }
+
+    // 2. 智慧標點斷句演算法 (將長段落拆解為具備呼吸感的自然短句)
+    function splitParagraphIntoSentences(paragraphText, maxLen = 60) {
+      if (!paragraphText || !paragraphText.trim()) return [];
+      const text = convertText(paragraphText.trim());
+
+      // 主要標點拆句：句號、驚嘆號、問號、分號、換行、省略號、破折號，並保留結尾引號括弧
+      const mainRegex = /[^。！？!?；;\n…—]+(?:[。！？!?；;\n…—]+["'」』】）\)]*)?/g;
+      const raw = text.match(mainRegex);
+      if (!raw || raw.length === 0) return [text];
+
+      const result = [];
+      for (let s of raw) {
+        s = s.trim();
+        if (!s) continue;
+        // 若該句仍過長（例如超過 60 字），進一步依據逗號、頓號、冒號拆分
+        if (s.length > maxLen) {
+          const subRegex = /[^，,、：: ]+(?:[，,、：: ]+["'」』】）\)]*)?/g;
+          const sub = s.match(subRegex);
+          if (sub && sub.length > 0) {
+            for (let subItem of sub) {
+              subItem = subItem.trim();
+              if (subItem) result.push(subItem);
+            }
+          } else {
+            result.push(s);
+          }
+        } else {
+          result.push(s);
+        }
+      }
+      return result.length > 0 ? result : [text];
+    }
+
+    // 3. 聽書播放控制流程
+    function startTTSFromParagraph(index = 0, sentenceIndex = 0) {
       if (!State.tts.synth) { alert('您的瀏覽器不支援語音合成。'); return; }
+      if (State.tts.interSentenceTimer) {
+        clearTimeout(State.tts.interSentenceTimer);
+        State.tts.interSentenceTimer = null;
+      }
       State.tts.synth.cancel();
       State.tts.currentParaIndex = index;
+      State.tts.currentSentenceIndex = sentenceIndex;
       State.tts.speaking = true;
       State.tts.paused = false;
+
       DOM.ttsPlayerCard.classList.remove('hidden');
       DOM.ttsIconPlay.classList.add('hidden');
       DOM.ttsIconPause.classList.remove('hidden');
-      speakCurrentParagraph();
+
+      prepareAndSpeakParagraph();
     }
 
-    function speakCurrentParagraph() {
+    function prepareAndSpeakParagraph() {
+      if (!State.tts.synth) return;
       if (State.tts.currentParaIndex >= State.tts.paragraphs.length) {
-        if (State.tts.autoNext && State.currentChapterIndex + 1 < State.currentBook.chapters.length) {
-          DOM.ttsStatusText.textContent = '播放下一章...';
+        if (State.settings.ttsAutoNext && State.currentChapterIndex + 1 < State.currentBook.chapters.length) {
+          DOM.ttsStatusText.textContent = '本章完，播放下一章...';
           setTimeout(() => {
             loadChapter(State.currentChapterIndex + 1);
-            setTimeout(() => startTTSFromParagraph(0), 1000);
-          }, 800);
+            setTimeout(() => startTTSFromParagraph(0, 0), 900);
+          }, 600);
         } else {
           stopTTS();
           DOM.ttsStatusText.textContent = '本章朗讀完畢';
@@ -1179,47 +1407,126 @@
         return;
       }
 
-      const text = State.tts.paragraphs[State.tts.currentParaIndex];
-      DOM.ttsStatusText.textContent = `[${State.tts.currentParaIndex + 1}/${State.tts.paragraphs.length}] ${text.substring(0, 18)}...`;
+      const rawPara = State.tts.paragraphs[State.tts.currentParaIndex];
+      if (State.settings.ttsSmartChunk !== false) {
+        State.tts.sentences = splitParagraphIntoSentences(rawPara);
+      } else {
+        State.tts.sentences = [convertText(rawPara)];
+      }
 
+      if (State.tts.currentSentenceIndex >= State.tts.sentences.length) {
+        State.tts.currentSentenceIndex = 0;
+      }
+
+      // 高亮當前朗讀段落並平滑滾動至視野中心
       document.querySelectorAll('.novel-paragraph').forEach((el, idx) => {
-        el.classList.toggle('tts-active', idx === State.tts.currentParaIndex);
-        if (idx === State.tts.currentParaIndex) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const isActive = (idx === State.tts.currentParaIndex);
+        el.classList.toggle('tts-active', isActive);
+        if (isActive) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       });
 
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.rate = State.tts.rate;
-      utter.lang = 'zh-TW';
+      speakCurrentSentence();
+    }
+
+    function speakCurrentSentence() {
+      if (!State.tts.synth || !State.tts.speaking || State.tts.paused) return;
+      if (State.tts.interSentenceTimer) {
+        clearTimeout(State.tts.interSentenceTimer);
+        State.tts.interSentenceTimer = null;
+      }
+
+      if (State.tts.currentSentenceIndex >= State.tts.sentences.length) {
+        // 本段落所有句子已讀完，進入下一段落
+        State.tts.currentParaIndex++;
+        State.tts.currentSentenceIndex = 0;
+        // 段落轉換留 260ms 自然停頓換氣
+        State.tts.interSentenceTimer = setTimeout(() => {
+          if (State.tts.speaking && !State.tts.paused) {
+            prepareAndSpeakParagraph();
+          }
+        }, 260);
+        return;
+      }
+
+      const sentenceText = State.tts.sentences[State.tts.currentSentenceIndex];
+      const pIdx = State.tts.currentParaIndex + 1;
+      const pTotal = State.tts.paragraphs.length;
+      const sIdx = State.tts.currentSentenceIndex + 1;
+      const sTotal = State.tts.sentences.length;
+
+      DOM.ttsStatusText.textContent = `[${pIdx}/${pTotal}段 · ${sIdx}/${sTotal}句] ${sentenceText.substring(0, 16)}${sentenceText.length > 16 ? '...' : ''}`;
+
+      State.tts.synth.cancel();
+
+      const utter = new SpeechSynthesisUtterance(sentenceText);
+      utter.rate = State.settings.ttsRate || 1.0;
+      utter.pitch = State.settings.ttsPitch || 1.0;
+
+      const activeVoice = getActiveVoice();
+      if (activeVoice) {
+        utter.voice = activeVoice;
+        utter.lang = activeVoice.lang;
+      } else {
+        utter.lang = State.isTraditional ? 'zh-TW' : 'zh-CN';
+      }
+
       utter.onend = () => {
         if (State.tts.speaking && !State.tts.paused) {
-          State.tts.currentParaIndex++;
-          speakCurrentParagraph();
+          State.tts.currentSentenceIndex++;
+          // 句子之間留 170ms 呼吸微停頓，語速從容不再機械連讀
+          State.tts.interSentenceTimer = setTimeout(() => {
+            if (State.tts.speaking && !State.tts.paused) {
+              speakCurrentSentence();
+            }
+          }, 170);
         }
       };
+
+      utter.onerror = (e) => {
+        if (e.error === 'interrupted' || e.error === 'canceled') return;
+        console.warn('TTS utterance error:', e);
+        if (State.tts.speaking && !State.tts.paused) {
+          State.tts.currentSentenceIndex++;
+          State.tts.interSentenceTimer = setTimeout(() => speakCurrentSentence(), 200);
+        }
+      };
+
       State.tts.utterance = utter;
       State.tts.synth.speak(utter);
     }
 
     function pauseTTS() {
       if (State.tts.synth && State.tts.speaking) {
-        State.tts.synth.pause();
+        if (State.tts.interSentenceTimer) {
+          clearTimeout(State.tts.interSentenceTimer);
+          State.tts.interSentenceTimer = null;
+        }
+        State.tts.synth.cancel();
         State.tts.paused = true;
         DOM.ttsIconPlay.classList.remove('hidden');
         DOM.ttsIconPause.classList.add('hidden');
-        DOM.ttsStatusText.textContent = '已暫停';
+        DOM.ttsStatusText.textContent = '已暫停 (點擊繼續)';
       }
     }
+
     function resumeTTS() {
       if (State.tts.synth && State.tts.paused) {
-        State.tts.synth.resume();
         State.tts.paused = false;
         DOM.ttsIconPlay.classList.add('hidden');
         DOM.ttsIconPause.classList.remove('hidden');
+        speakCurrentSentence();
       } else {
-        startTTSFromParagraph(State.tts.currentParaIndex >= 0 ? State.tts.currentParaIndex : 0);
+        startTTSFromParagraph(State.tts.currentParaIndex >= 0 ? State.tts.currentParaIndex : 0, 0);
       }
     }
+
     function stopTTS() {
+      if (State.tts.interSentenceTimer) {
+        clearTimeout(State.tts.interSentenceTimer);
+        State.tts.interSentenceTimer = null;
+      }
       if (State.tts.synth) State.tts.synth.cancel();
       State.tts.speaking = false;
       State.tts.paused = false;
@@ -1227,6 +1534,72 @@
       DOM.ttsIconPlay.classList.remove('hidden');
       DOM.ttsIconPause.classList.add('hidden');
       DOM.ttsPlayerCard.classList.add('hidden');
+    }
+
+    function ttsPrevSentence() {
+      if (!State.tts.synth) return;
+      if (State.tts.interSentenceTimer) {
+        clearTimeout(State.tts.interSentenceTimer);
+        State.tts.interSentenceTimer = null;
+      }
+      State.tts.synth.cancel();
+
+      if (State.tts.currentSentenceIndex > 0) {
+        State.tts.currentSentenceIndex--;
+        speakCurrentSentence();
+      } else if (State.tts.currentParaIndex > 0) {
+        State.tts.currentParaIndex--;
+        const prevPara = State.tts.paragraphs[State.tts.currentParaIndex];
+        State.tts.sentences = (State.settings.ttsSmartChunk !== false)
+          ? splitParagraphIntoSentences(prevPara)
+          : [convertText(prevPara)];
+        State.tts.currentSentenceIndex = Math.max(0, State.tts.sentences.length - 1);
+        prepareAndSpeakParagraph();
+      }
+    }
+
+    function ttsNextSentence() {
+      if (!State.tts.synth) return;
+      if (State.tts.interSentenceTimer) {
+        clearTimeout(State.tts.interSentenceTimer);
+        State.tts.interSentenceTimer = null;
+      }
+      State.tts.synth.cancel();
+
+      if (State.tts.currentSentenceIndex < State.tts.sentences.length - 1) {
+        State.tts.currentSentenceIndex++;
+        speakCurrentSentence();
+      } else if (State.tts.currentParaIndex < State.tts.paragraphs.length - 1) {
+        State.tts.currentParaIndex++;
+        State.tts.currentSentenceIndex = 0;
+        prepareAndSpeakParagraph();
+      }
+    }
+
+    function previewVoice() {
+      if (!State.tts.synth) return;
+      if (State.tts.interSentenceTimer) {
+        clearTimeout(State.tts.interSentenceTimer);
+        State.tts.interSentenceTimer = null;
+      }
+      State.tts.synth.cancel();
+
+      const sample = State.isTraditional
+        ? '這是一段 AI 說書試聽。自然語音抑揚頓挫，長句分段更清晰。'
+        : '这是一段 AI 说书试听。自然语音抑扬顿挫，长句分段更清晰。';
+      const utter = new SpeechSynthesisUtterance(sample);
+      utter.rate = State.settings.ttsRate || 1.0;
+      utter.pitch = State.settings.ttsPitch || 1.0;
+
+      const activeVoice = getActiveVoice();
+      if (activeVoice) {
+        utter.voice = activeVoice;
+        utter.lang = activeVoice.lang;
+      } else {
+        utter.lang = State.isTraditional ? 'zh-TW' : 'zh-CN';
+      }
+
+      State.tts.synth.speak(utter);
     }
 
     // --- Firebase 雲端同步監聽 ---
@@ -1534,20 +1907,101 @@
       DOM.toggleDualCol.addEventListener('change', (e) => { State.settings.isDualCol = e.target.checked; applySettings(); });
       DOM.toggleTapTurn.addEventListener('change', (e) => { State.settings.enableTapTurn = e.target.checked; applySettings(); });
 
-      DOM.btnToggleTts.addEventListener('click', () => { State.tts.speaking ? pauseTTS() : resumeTTS(); });
-      DOM.ttsBtnPlay.addEventListener('click', () => { (State.tts.speaking && !State.tts.paused) ? pauseTTS() : resumeTTS(); });
+      DOM.btnToggleTts.addEventListener('click', () => {
+        if (State.tts.speaking && !State.tts.paused) {
+          pauseTTS();
+        } else if (State.tts.speaking && State.tts.paused) {
+          resumeTTS();
+        } else {
+          startTTSFromParagraph(State.tts.currentParaIndex >= 0 ? State.tts.currentParaIndex : 0, 0);
+        }
+      });
+      DOM.ttsBtnPlay.addEventListener('click', () => {
+        (State.tts.speaking && !State.tts.paused) ? pauseTTS() : resumeTTS();
+      });
       DOM.ttsBtnClose.addEventListener('click', stopTTS);
+
       DOM.ttsRateSelect.addEventListener('change', (e) => {
-        State.tts.rate = parseFloat(e.target.value);
-        if (State.tts.speaking && !State.tts.paused) startTTSFromParagraph(State.tts.currentParaIndex);
+        State.settings.ttsRate = parseFloat(e.target.value);
+        applySettings();
+        if (State.tts.speaking && !State.tts.paused) {
+          speakCurrentSentence();
+        }
       });
-      DOM.ttsAutoNext.addEventListener('change', (e) => { State.tts.autoNext = e.target.checked; });
-      DOM.ttsBtnPrevPara.addEventListener('click', () => {
-        if (State.tts.currentParaIndex > 0) startTTSFromParagraph(State.tts.currentParaIndex - 1);
+
+      if (DOM.ttsVoiceSelectQuick) {
+        DOM.ttsVoiceSelectQuick.addEventListener('change', (e) => {
+          State.settings.ttsVoiceURI = e.target.value;
+          applySettings();
+          if (State.tts.speaking && !State.tts.paused) {
+            speakCurrentSentence();
+          }
+        });
+      }
+
+      if (DOM.ttsBtnOpenSettings) {
+        DOM.ttsBtnOpenSettings.addEventListener('click', () => {
+          DOM.settingsModal.classList.remove('hidden');
+          const sec = document.getElementById('settings-tts-section');
+          if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+
+      DOM.ttsAutoNext.addEventListener('change', (e) => {
+        State.settings.ttsAutoNext = e.target.checked;
+        applySettings();
       });
-      DOM.ttsBtnNextPara.addEventListener('click', () => {
-        if (State.tts.currentParaIndex < State.tts.paragraphs.length - 1) startTTSFromParagraph(State.tts.currentParaIndex + 1);
-      });
+
+      DOM.ttsBtnPrevPara.addEventListener('click', ttsPrevSentence);
+      DOM.ttsBtnNextPara.addEventListener('click', ttsNextSentence);
+
+      // 設定彈窗內的 TTS 控制項綁定
+      if (DOM.settingsTtsVoice) {
+        DOM.settingsTtsVoice.addEventListener('change', (e) => {
+          State.settings.ttsVoiceURI = e.target.value;
+          if (DOM.ttsVoiceSelectQuick) DOM.ttsVoiceSelectQuick.value = e.target.value;
+          applySettings();
+          if (State.tts.speaking && !State.tts.paused) {
+            speakCurrentSentence();
+          }
+        });
+      }
+
+      if (DOM.settingsTtsRate) {
+        DOM.settingsTtsRate.addEventListener('input', (e) => {
+          const val = parseFloat(e.target.value);
+          State.settings.ttsRate = val;
+          if (DOM.ttsRateLabel) DOM.ttsRateLabel.textContent = `${val.toFixed(1)}x`;
+          if (DOM.ttsRateSelect) DOM.ttsRateSelect.value = val.toString();
+          applySettings();
+          if (State.tts.speaking && !State.tts.paused) {
+            speakCurrentSentence();
+          }
+        });
+      }
+
+      if (DOM.settingsTtsPitch) {
+        DOM.settingsTtsPitch.addEventListener('input', (e) => {
+          const val = parseFloat(e.target.value);
+          State.settings.ttsPitch = val;
+          if (DOM.ttsPitchLabel) DOM.ttsPitchLabel.textContent = val.toFixed(2);
+          applySettings();
+          if (State.tts.speaking && !State.tts.paused) {
+            speakCurrentSentence();
+          }
+        });
+      }
+
+      if (DOM.settingsTtsSmartChunk) {
+        DOM.settingsTtsSmartChunk.addEventListener('change', (e) => {
+          State.settings.ttsSmartChunk = e.target.checked;
+          applySettings();
+        });
+      }
+
+      if (DOM.btnTtsPreview) {
+        DOM.btnTtsPreview.addEventListener('click', previewVoice);
+      }
 
       window.addEventListener('scroll', () => {
         const scrollH = document.documentElement.scrollHeight - window.innerHeight;
@@ -1576,6 +2030,14 @@
         State.isTraditional = (savedTraditional === 'true');
       }
       applySettings();
+
+      // 初始化 TTS 語音並監聽瀏覽器異步載入語音庫
+      if (window.speechSynthesis) {
+        initTTSVoices();
+        window.speechSynthesis.onvoiceschanged = () => {
+          initTTSVoices();
+        };
+      }
 
       try {
         const bResp = await fetch('./books.json');
