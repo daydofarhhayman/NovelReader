@@ -1044,9 +1044,18 @@
     }
 
     // --- 帳號專屬閱讀進度隔離與快取輔助函式 ---
+    function getActiveUID() {
+      if (State.firebaseUser && State.firebaseUser.uid) {
+        return State.firebaseUser.uid;
+      }
+      // 網頁剛開啟或重新整理的第 0 秒，即使 Firebase Auth 尚未非同步喚醒，也能直接取得上次登入的帳號 UID
+      return localStorage.getItem('last_active_uid') || null;
+    }
+
     function getBookProgress(bookId) {
-      if (State.firebaseUser) {
-        const uData = localStorage.getItem(`progress_${State.firebaseUser.uid}_${bookId}`);
+      const uid = getActiveUID();
+      if (uid) {
+        const uData = localStorage.getItem(`progress_${uid}_${bookId}`);
         if (uData) {
           try { return JSON.parse(uData); } catch (e) {}
         }
@@ -1059,8 +1068,9 @@
     }
 
     function getLastReadProgress() {
-      if (State.firebaseUser) {
-        const uData = localStorage.getItem(`last_read_${State.firebaseUser.uid}`);
+      const uid = getActiveUID();
+      if (uid) {
+        const uData = localStorage.getItem(`last_read_${uid}`);
         if (uData) {
           try { return JSON.parse(uData); } catch (e) {}
         }
@@ -1073,10 +1083,12 @@
     }
 
     function saveBookProgress(bookId, prog) {
-      if (State.firebaseUser) {
-        localStorage.setItem(`progress_${State.firebaseUser.uid}_${bookId}`, JSON.stringify(prog));
-        localStorage.setItem(`last_read_${State.firebaseUser.uid}`, JSON.stringify(prog));
+      const uid = getActiveUID();
+      if (uid) {
+        localStorage.setItem(`progress_${uid}_${bookId}`, JSON.stringify(prog));
+        localStorage.setItem(`last_read_${uid}`, JSON.stringify(prog));
       }
+      // 直接覆蓋本機通用快取，確保重新整理時絕不再讀取任何陳舊進度
       localStorage.setItem(`progress_${bookId}`, JSON.stringify(prog));
       localStorage.setItem('last_read_book', JSON.stringify(prog));
     }
@@ -1724,6 +1736,7 @@
         firebase.auth().onAuthStateChanged(user => {
           State.firebaseUser = user;
           if (user) {
+            localStorage.setItem('last_active_uid', user.uid);
             DOM.userDisplayName.textContent = user.displayName || user.email.split('@')[0];
             DOM.userEmail.textContent = user.email;
             DOM.userAvatar.innerHTML = user.photoURL 
@@ -1752,6 +1765,7 @@
             DOM.syncStatusIcon.className = 'text-amber-500';
             DOM.syncStatusTitle.textContent = '本地快取模式';
             DOM.syncStatusDesc.textContent = '使用 Google 登入後，即可在手機與電腦跨裝置無縫同步您的進度。';
+            localStorage.removeItem('last_active_uid');
             renderBookshelf();
           }
         });
@@ -1803,20 +1817,22 @@
           applySettings();
         }
 
-        // 2. 同步最近閱讀紀錄
+        // 2. 同步最近閱讀紀錄 (直接覆蓋本地快取，杜絕任何過期資料殘留)
         const lastSnap = await State.firebaseDb.doc(`users/${uid}/recent/last_read`).get();
         if (lastSnap.exists) {
           const lData = lastSnap.data();
           localStorage.setItem(`last_read_${uid}`, JSON.stringify(lData));
+          localStorage.setItem('last_read_book', JSON.stringify(lData));
         }
 
-        // 3. 同步所有書籍之進度集合 (解決跨裝置手機與電腦不互通問題)
+        // 3. 同步所有書籍之進度集合 (用雲端最新資料強制覆蓋本地所有舊快取)
         const progSnap = await State.firebaseDb.collection(`users/${uid}/reading_progress`).get();
         if (!progSnap.empty) {
           progSnap.forEach(doc => {
             const p = doc.data();
             if (p && p.bookId) {
               localStorage.setItem(`progress_${uid}_${p.bookId}`, JSON.stringify(p));
+              localStorage.setItem(`progress_${p.bookId}`, JSON.stringify(p));
             }
           });
         }
