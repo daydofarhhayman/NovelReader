@@ -9,5 +9,16 @@
     "status": "連載中",
     "indexUrl": "./novels/劍來/chapters.json",
     "chaptersBase": "./novels/劍來/"
+  },
+  {
+    "bookId": "book_c226f80a",
+    "title": "蠱真人",
+    "author": "蠱真人",
+    "description": "《蠱真人》全本在線閱讀。",
+    "totalChapters": 2398,
+    "category": "玄幻仙俠",
+    "status": "連載中",
+    "indexUrl": "./novels/蠱真人/chapters.json",
+    "chaptersBase": "./novels/蠱真人/"
   }
 ]
