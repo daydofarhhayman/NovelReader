@@ -55,5 +55,27 @@
     "status": "連載中",
     "indexUrl": "./novels/鬥羅大陸/chapters.json",
     "chaptersBase": "./novels/鬥羅大陸/"
+  },
+  {
+    "bookId": "book_04bb8d45",
+    "title": "異獸迷城",
+    "author": "彭湃",
+    "description": "《異獸迷城》全本在線閱讀。",
+    "totalChapters": 1302,
+    "category": "玄幻仙俠",
+    "status": "連載中",
+    "indexUrl": "./novels/異獸迷城/chapters.json",
+    "chaptersBase": "./novels/異獸迷城/"
+  },
+  {
+    "bookId": "book_57253615",
+    "title": "十日終焉",
+    "author": "殺蟲隊隊員",
+    "description": "《十日終焉》全本在線閱讀。",
+    "totalChapters": 1360,
+    "category": "玄幻仙俠",
+    "status": "連載中",
+    "indexUrl": "./novels/十日終焉/chapters.json",
+    "chaptersBase": "./novels/十日終焉/"
   }
 ]

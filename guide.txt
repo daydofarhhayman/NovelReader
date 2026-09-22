@@ -1,3 +1,4 @@
 如何加入新的小說
     1.將小說完整內文的壓縮資料夾放入和index.html同層級
-    2.在終端機輸入   python add_book.py 鬥羅大陸.zip --author 唐家三少
+    2.在終端機輸入   python add_book.py 十日終焉.zip --author 殺蟲隊隊員
+    python add_book.py 異獸迷城.zip --author 彭湃
