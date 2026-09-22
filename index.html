@@ -1170,6 +1170,7 @@
     }
 
     function showBookshelf() {
+      saveCurrentProgress();
       stopTTS();
       stopAudioDrama();
       if (DOM.viewReader) DOM.viewReader.classList.remove('is-paginated-mode');
@@ -1354,9 +1355,11 @@
     }
 
     async function fetchChapterContent(chapter) {
-      if (State.chapterCache.has(chapter.id)) return State.chapterCache.get(chapter.id);
+      const bookId = State.currentBook ? State.currentBook.bookId : "default";
+      const cacheKey = `${bookId}_${chapter.id}`;
+      if (State.chapterCache.has(cacheKey)) return State.chapterCache.get(cacheKey);
       if (chapter.content) {
-        State.chapterCache.set(chapter.id, chapter.content);
+        State.chapterCache.set(cacheKey, chapter.content);
         return chapter.content;
       }
       const base = State.currentBook.chaptersBase || './chapters/';
@@ -1365,7 +1368,7 @@
         const resp = await fetch(url);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const text = await resp.text();
-        State.chapterCache.set(chapter.id, text);
+        State.chapterCache.set(cacheKey, text);
         return text;
       } catch (err) {
         return `無法取得該章節內容 (${url})。
@@ -1379,7 +1382,9 @@
       const nextIdx = State.currentChapterIndex + 1;
       if (nextIdx < State.currentBook.chapters.length) {
         const nextChap = State.currentBook.chapters[nextIdx];
-        if (!State.chapterCache.has(nextChap.id)) fetchChapterContent(nextChap);
+        const bookId = State.currentBook.bookId;
+        const cacheKey = `${bookId}_${nextChap.id}`;
+        if (!State.chapterCache.has(cacheKey)) fetchChapterContent(nextChap);
       }
     }
 
@@ -1677,10 +1682,11 @@
 
       if (State.tts.currentParaIndex >= State.tts.paragraphs.length) {
         if (State.settings.ttsAutoNext && State.currentChapterIndex + 1 < State.currentBook.chapters.length) {
-          DOM.ttsStatusText.textContent = '本章完，播放下一章...';
-          setTimeout(() => {
-            loadChapter(State.currentChapterIndex + 1);
-            setTimeout(() => startTTSFromParagraph(0), 800);
+          DOM.ttsStatusText.textContent = '本章朗讀完畢，正在載入下一章...';
+          const nextChapIdx = State.currentChapterIndex + 1;
+          setTimeout(async () => {
+            await loadChapter(nextChapIdx);
+            startTTSFromParagraph(0);
           }, 300);
         } else {
           stopTTS();
@@ -1856,7 +1862,7 @@
       } catch (e) {}
     }
 
-    async function syncToFirestore() {
+    async function syncToFirestore(progData = null) {
       if (!State.firebaseUser || !State.firebaseDb) return;
       const uid = State.firebaseUser.uid;
       try {
@@ -1865,21 +1871,33 @@
 
         // 同步當前閱讀小說之章節進度
         if (State.currentBook) {
-          const scrollH = document.documentElement.scrollHeight - window.innerHeight;
-          const pct = scrollH > 0 ? (window.scrollY / scrollH) : 0;
-          const prog = {
-            bookId: State.currentBook.bookId,
-            bookTitle: State.currentBook.title,
-            cover: State.currentBook.cover || '',
-            chapterIndex: State.currentChapterIndex,
-            chapterTitle: State.currentBook.chapters[State.currentChapterIndex]?.title || '',
-            scrollPercentage: pct,
-            timestamp: Date.now(),
+          let prog = progData;
+          if (!prog) {
+            const isPaginated = (State.settings.pageMode === 'paginated') && (window.innerWidth < 1024);
+            let pct = 0;
+            if (isPaginated) {
+              pct = (State.pagination.currentPage || 0) / Math.max(1, (State.pagination.totalPages || 1) - 1);
+            } else {
+              const scrollH = document.documentElement.scrollHeight - window.innerHeight;
+              pct = scrollH > 0 ? (window.scrollY / scrollH) : 0;
+            }
+            prog = {
+              bookId: State.currentBook.bookId,
+              bookTitle: State.currentBook.title,
+              cover: State.currentBook.cover || '',
+              chapterIndex: State.currentChapterIndex,
+              chapterTitle: State.currentBook.chapters?.[State.currentChapterIndex]?.title || '',
+              scrollPercentage: pct,
+              timestamp: Date.now()
+            };
+          }
+          const syncProg = {
+            ...prog,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
           };
-          await State.firebaseDb.doc(`users/${uid}/reading_progress/${State.currentBook.bookId}`).set(prog, { merge: true });
-          await State.firebaseDb.doc(`users/${uid}/recent/last_read`).set(prog, { merge: true });
-          console.log(`☁️ 成功由雲端保存《${State.currentBook.title}》進度！`);
+          await State.firebaseDb.doc(`users/${uid}/reading_progress/${State.currentBook.bookId}`).set(syncProg, { merge: true });
+          await State.firebaseDb.doc(`users/${uid}/recent/last_read`).set(syncProg, { merge: true });
+          console.log(`☁️ 成功由雲端保存《${State.currentBook.title}》進度 (${Math.round((prog.scrollPercentage || 0) * 100)}%)！`);
         }
       } catch (err) {
         console.error('🔥 Firestore 雲端寫入失敗:', err);
@@ -2032,6 +2050,34 @@
             slider.appendChild(currentPageDiv);
             pages.push(currentPageDiv);
             currentPageDiv.appendChild(pEl);
+
+            // 若在新頁面依然溢出，表示此單段長度大於整頁高度，移除後進入按句拆分排版
+            if (currentPageDiv.scrollHeight > viewportHeight) {
+              currentPageDiv.removeChild(pEl);
+              const sentences = pText.match(/[^。！？!?；;\n]+(?:[。！？!?；;\n]+["\x27」』】）\)]*)?/g) || [pText];
+              let subP = document.createElement('p');
+              subP.className = 'novel-paragraph';
+              subP.dataset.paraIndex = pIdx;
+              subP.textContent = '';
+              currentPageDiv.appendChild(subP);
+
+              for (let s of sentences) {
+                const prev = subP.textContent;
+                subP.textContent += s;
+                if (currentPageDiv.scrollHeight > viewportHeight && prev.length > 0) {
+                  subP.textContent = prev;
+                  currentPageDiv = createPageElement();
+                  slider.appendChild(currentPageDiv);
+                  pages.push(currentPageDiv);
+
+                  subP = document.createElement('p');
+                  subP.className = 'novel-paragraph';
+                  subP.dataset.paraIndex = pIdx;
+                  subP.textContent = s;
+                  currentPageDiv.appendChild(subP);
+                }
+              }
+            }
           }
         }
       }
@@ -2149,7 +2195,7 @@
         timestamp: Date.now()
       };
       saveBookProgress(State.currentBook.bookId, prog);
-      syncToFirestore();
+      syncToFirestore(prog);
     }
 
     function createHeaderBoxForChapter(chapter, index) {
@@ -2650,12 +2696,33 @@
         DOM.btnTtsPreview.addEventListener('click', previewVoice);
       }
 
+      let scrollSaveTimer = null;
       window.addEventListener('scroll', () => {
         const scrollH = document.documentElement.scrollHeight - window.innerHeight;
         if (scrollH > 0) {
           DOM.progressBar.style.width = `${Math.min(100, Math.max(0, (window.scrollY / scrollH) * 100))}%`;
         }
+        if (State.currentBook && (!DOM.viewReader.classList.contains('hidden')) && State.settings.pageMode !== 'paginated') {
+          if (!scrollSaveTimer) {
+            scrollSaveTimer = setTimeout(() => {
+              scrollSaveTimer = null;
+              saveCurrentProgress();
+            }, 1500);
+          }
+        }
       }, { passive: true });
+
+      // 監聽網頁離開、切換分頁與關閉，即時保存進度
+      window.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && State.currentBook && !DOM.viewReader.classList.contains('hidden')) {
+          saveCurrentProgress();
+        }
+      });
+      window.addEventListener('pagehide', () => {
+        if (State.currentBook && !DOM.viewReader.classList.contains('hidden')) {
+          saveCurrentProgress();
+        }
+      });
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
