@@ -29,7 +29,7 @@
     "author": "愛潛水的烏賊",
     "description": "《詭秘之主》全本在線閱讀。",
     "totalChapters": 1449,
-    "category": "玄幻仙俠",
+    "category": "西方魔法克蘇魯",
     "status": "連載中",
     "indexUrl": "./novels/詭秘之主/chapters.json",
     "chaptersBase": "./novels/詭秘之主/"
@@ -62,7 +62,7 @@
     "author": "彭湃",
     "description": "《異獸迷城》全本在線閱讀。",
     "totalChapters": 1302,
-    "category": "玄幻仙俠",
+    "category": "現代都市",
     "status": "連載中",
     "indexUrl": "./novels/異獸迷城/chapters.json",
     "chaptersBase": "./novels/異獸迷城/"
@@ -73,7 +73,7 @@
     "author": "殺蟲隊隊員",
     "description": "《十日終焉》全本在線閱讀。",
     "totalChapters": 1360,
-    "category": "玄幻仙俠",
+    "category": "智鬥",
     "status": "連載中",
     "indexUrl": "./novels/十日終焉/chapters.json",
     "chaptersBase": "./novels/十日終焉/"
