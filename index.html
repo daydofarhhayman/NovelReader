@@ -62,6 +62,103 @@
       color: var(--theme-text, #2C302E) !important;
     }
 
+    /* ==================== 手機一頁一頁 (分頁模式) 樣式 ==================== */
+    body.is-paginated-mode {
+      overflow: hidden !important;
+      position: fixed;
+      width: 100vw;
+      height: 100dvh;
+      height: 100vh;
+    }
+
+    body.is-paginated-mode #reader-container {
+      height: 100dvh !important;
+      height: 100vh !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      position: relative !important;
+      width: 100vw !important;
+      max-width: 100vw !important;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body.is-paginated-mode #paginated-viewport {
+      flex: 1;
+      width: 100vw !important;
+      max-width: 100vw !important;
+      height: calc(100dvh - 54px) !important;
+      height: calc(100vh - 54px) !important;
+      margin-top: 26px !important;
+      overflow: hidden !important;
+      position: relative !important;
+    }
+
+    body.is-paginated-mode #content-wrapper {
+      width: 100vw !important;
+      max-width: 100vw !important;
+      height: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    body.is-paginated-mode #novel-content {
+      height: 100% !important;
+      column-width: 100vw !important;
+      column-gap: 0px !important;
+      column-fill: auto !important;
+      transition: transform 0.22s cubic-bezier(0.2, 0, 0.2, 1);
+      will-change: transform;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body.is-paginated-mode .chapter-header-box {
+      padding-left: 22px;
+      padding-right: 22px;
+      padding-top: 6px;
+      box-sizing: border-box;
+      break-inside: avoid;
+    }
+
+    body.is-paginated-mode .novel-paragraph {
+      padding-left: 22px !important;
+      padding-right: 22px !important;
+      box-sizing: border-box;
+      break-inside: auto;
+      margin-bottom: 1.15rem !important;
+    }
+
+    body.is-paginated-mode #chapter-bottom-nav {
+      display: none !important;
+    }
+
+    body.is-paginated-mode .page-info-bar {
+      display: flex !important;
+    }
+
+    .page-info-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      padding: 6px 22px;
+      font-size: 11px;
+      opacity: 0.55;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 25;
+      user-select: none;
+    }
+    .page-info-top {
+      top: 2px;
+    }
+    .page-info-bottom {
+      bottom: 4px;
+    }
+
     /* 滾動條樣式 */
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.25); border-radius: 9999px; }
@@ -311,38 +408,40 @@
 
         <!-- 閱讀主體畫布 -->
         <main id="reader-container" class="flex-1 min-h-screen pt-6 pb-28 px-4 sm:px-8 transition-all duration-200">
-          <div id="content-wrapper" class="mx-auto max-w-3xl transition-all duration-200">
-            
-            <div class="mb-10 text-center border-b border-black/10 dark:border-white/10 pb-6">
-              <div class="inline-block px-3 py-1 mb-2 text-xs font-medium rounded-full bg-black/5 dark:bg-white/5 opacity-70">
-                <span id="chapter-order-badge">第 1 章</span>
-              </div>
-              <h2 id="chapter-title-heading" class="text-2xl sm:text-3xl font-extrabold tracking-wide mb-3">載入章節中...</h2>
-              <div class="text-xs opacity-60 flex items-center justify-center gap-4">
-                <span id="chapter-word-count">約 0 字</span>
-                <span>•</span>
-                <span id="chapter-read-time">預計閱讀 0 分鐘</span>
+          
+          <!-- 分頁模式頂部極簡指示列 (僅在手機分頁模式顯示) -->
+          <div id="paginated-top-bar" class="page-info-bar page-info-top hidden">
+            <span id="paginated-book-title" class="truncate max-w-[170px] font-medium">劍來</span>
+            <span id="paginated-chapter-title" class="truncate max-w-[160px] opacity-75">載入中...</span>
+          </div>
+
+          <!-- 分頁視窗 -->
+          <div id="paginated-viewport" class="w-full relative">
+            <div id="content-wrapper" class="mx-auto max-w-3xl transition-all duration-200">
+              <!-- 小說內文容器 (分頁模式下以此容器為多欄分頁主體) -->
+              <article id="novel-content" class="leading-relaxed space-y-6 focus:outline-none"></article>
+
+              <!-- 底部換章按鈕列 (滾動模式下顯示) -->
+              <div id="chapter-bottom-nav" class="mt-16 pt-8 border-t border-black/10 dark:border-white/10 flex items-center justify-between gap-4">
+                <button id="btn-prev-bottom" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 font-medium transition text-sm">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                  <span>上一章</span>
+                </button>
+                <button id="btn-toc-bottom" class="px-4 py-3 rounded-xl border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 font-medium transition text-sm">
+                  目錄
+                </button>
+                <button id="btn-next-bottom" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-medium transition text-sm shadow-md">
+                  <span>下一章</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
               </div>
             </div>
+          </div>
 
-            <!-- 小說內文容器 -->
-            <article id="novel-content" class="leading-relaxed space-y-6 focus:outline-none"></article>
-
-            <!-- 底部換章按鈕列 -->
-            <div class="mt-16 pt-8 border-t border-black/10 dark:border-white/10 flex items-center justify-between gap-4">
-              <button id="btn-prev-bottom" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 font-medium transition text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                <span>上一章</span>
-              </button>
-              <button id="btn-toc-bottom" class="px-4 py-3 rounded-xl border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 font-medium transition text-sm">
-                目錄
-              </button>
-              <button id="btn-next-bottom" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-medium transition text-sm shadow-md">
-                <span>下一章</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              </button>
-            </div>
-
+          <!-- 分頁模式底部極簡指示列 (僅在手機分頁模式顯示) -->
+          <div id="paginated-bottom-bar" class="page-info-bar page-info-bottom hidden">
+            <span id="paginated-page-label">第 1 / 1 頁</span>
+            <span id="paginated-pct-label">0%</span>
           </div>
         </main>
 
@@ -555,10 +654,23 @@
           <input type="checkbox" id="toggle-dual-col" class="w-5 h-5 accent-amber-600 rounded">
         </div>
 
+        <!-- 手機翻頁模式切換 -->
+        <div class="pt-2 border-t border-black/5 dark:border-white/5">
+          <label class="block text-xs font-semibold opacity-70 mb-2">手機閱讀翻頁效果</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button id="btn-pagemode-paginated" class="p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-xs">
+              <span>📖 一頁一頁 (點擊/滑動)</span>
+            </button>
+            <button id="btn-pagemode-scroll" class="p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 border-black/10 dark:border-white/10 opacity-70 hover:opacity-100">
+              <span>📜 上下滾動 (傳統瀑布流)</span>
+            </button>
+          </div>
+        </div>
+
         <div class="flex items-center justify-between pt-2 border-t border-black/5 dark:border-white/5">
           <div>
-            <span class="text-sm font-semibold">手機點擊三段式翻頁</span>
-            <p class="text-xs opacity-60">左側上一頁 / 中央選單 / 右側下一頁</p>
+            <span class="text-sm font-semibold">點擊螢幕翻頁 (按一下翻下頁)</span>
+            <p class="text-xs opacity-60">點擊右側/大部分區域翻下頁，中央喚醒選單</p>
           </div>
           <input type="checkbox" id="toggle-tap-turn" checked class="w-5 h-5 accent-amber-600 rounded">
         </div>
@@ -723,6 +835,7 @@
         contentWidth: 'max-w-3xl',
         isDualCol: false,
         enableTapTurn: true,
+        pageMode: 'paginated',
         ttsRate: 1.0,
         ttsPitch: 1.0,
         ttsVoiceURI: '',
@@ -738,6 +851,16 @@
         utterance: null,
         voices: [],
         keepAliveTimer: null
+      },
+      audioDrama: {
+        player: null,
+        isPlaying: false,
+        activeUrl: ''
+      },
+      pagination: {
+        currentPage: 0,
+        totalPages: 1,
+        pageWidth: 0
       }
     };
 
@@ -769,10 +892,15 @@
       btnBackToBookshelf: document.getElementById('btn-back-to-bookshelf'),
       readerBookTitle: document.getElementById('reader-book-title'),
       navChapterTitle: document.getElementById('nav-chapter-title'),
-      chapterOrderBadge: document.getElementById('chapter-order-badge'),
-      chapterTitleHeading: document.getElementById('chapter-title-heading'),
-      chapterWordCount: document.getElementById('chapter-word-count'),
-      chapterReadTime: document.getElementById('chapter-read-time'),
+      paginatedViewport: document.getElementById('paginated-viewport'),
+      paginatedTopBar: document.getElementById('paginated-top-bar'),
+      paginatedBottomBar: document.getElementById('paginated-bottom-bar'),
+      paginatedBookTitle: document.getElementById('paginated-book-title'),
+      paginatedChapterTitle: document.getElementById('paginated-chapter-title'),
+      paginatedPageLabel: document.getElementById('paginated-page-label'),
+      paginatedPctLabel: document.getElementById('paginated-pct-label'),
+      btnPageModePaginated: document.getElementById('btn-pagemode-paginated'),
+      btnPageModeScroll: document.getElementById('btn-pagemode-scroll'),
       novelContent: document.getElementById('novel-content'),
       contentWrapper: document.getElementById('content-wrapper'),
       sliderChapter: document.getElementById('chapter-range-slider'),
@@ -968,6 +1096,23 @@
       DOM.toggleDualCol.checked = s.isDualCol;
       DOM.toggleTapTurn.checked = s.enableTapTurn;
 
+      // 切換分頁模式與滾動模式
+      const isPaginated = (s.pageMode === 'paginated') && (window.innerWidth < 1024);
+      DOM.body.classList.toggle('is-paginated-mode', isPaginated);
+
+      if (DOM.btnPageModePaginated && DOM.btnPageModeScroll) {
+        DOM.btnPageModePaginated.className = `p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+          s.pageMode === 'paginated'
+            ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-xs'
+            : 'border-black/10 dark:border-white/10 opacity-70 hover:opacity-100'
+        }`;
+        DOM.btnPageModeScroll.className = `p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+          s.pageMode === 'scroll'
+            ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-xs'
+            : 'border-black/10 dark:border-white/10 opacity-70 hover:opacity-100'
+        }`;
+      }
+
       // 更新設定面板繁簡按鈕高亮
       if (DOM.btnCcTraditional && DOM.btnCcSimplified) {
         DOM.btnCcTraditional.className = `p-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
@@ -994,6 +1139,10 @@
       if (DOM.ttsAutoNext) DOM.ttsAutoNext.checked = State.settings.ttsAutoNext !== false;
       if (DOM.settingsTtsVoice && State.settings.ttsVoiceURI) DOM.settingsTtsVoice.value = State.settings.ttsVoiceURI;
       if (DOM.ttsVoiceSelectQuick && State.settings.ttsVoiceURI) DOM.ttsVoiceSelectQuick.value = State.settings.ttsVoiceURI;
+
+      if (State.settings.pageMode === 'paginated' && window.innerWidth < 1024) {
+        calculatePages(State.pagination.currentPage);
+      }
 
       localStorage.setItem('novel_reader_settings', JSON.stringify(State.settings));
       syncToFirestore();
@@ -1207,23 +1356,22 @@
       }
     }
 
-    async function loadChapter(index, targetScrollPercentage = 0) {
+    async function loadChapter(index, targetScrollPercentage = 0, startAtLastPage = false) {
       if (!State.currentBook || !State.currentBook.chapters) return;
       if (index < 0 || index >= State.currentBook.chapters.length) return;
 
       State.currentChapterIndex = index;
       const chapter = State.currentBook.chapters[index];
       stopTTS();
+      stopAudioDrama();
 
       const title = convertText(chapter.title);
       DOM.readerBookTitle.textContent = convertText(State.currentBook.title);
       DOM.navChapterTitle.textContent = title;
-      DOM.chapterTitleHeading.textContent = title;
-      DOM.chapterOrderBadge.textContent = `第 ${chapter.id || (index + 1)} 章`;
+      if (DOM.paginatedBookTitle) DOM.paginatedBookTitle.textContent = convertText(State.currentBook.title);
+      if (DOM.paginatedChapterTitle) DOM.paginatedChapterTitle.textContent = title;
 
       const words = chapter.wordCount || 3500;
-      DOM.chapterWordCount.textContent = `約 ${words.toLocaleString()} 字`;
-      DOM.chapterReadTime.textContent = `預計閱讀 ${Math.ceil(words / 450)} 分鐘`;
 
       DOM.novelContent.innerHTML = `<div class="py-12 text-center opacity-60 animate-pulse">章節載入中...</div>`;
 
@@ -1232,6 +1380,38 @@
       State.tts.paragraphs = paragraphs;
 
       DOM.novelContent.innerHTML = '';
+
+      // 建立章節頂部抬頭區塊 (置於第一頁頂端)
+      const headerBox = document.createElement('div');
+      headerBox.className = 'chapter-header-box mb-8 text-center border-b border-black/10 dark:border-white/10 pb-6';
+      headerBox.innerHTML = `
+        <div class="inline-block px-3 py-1 mb-2 text-xs font-medium rounded-full bg-black/5 dark:bg-white/5 opacity-70">
+          <span>第 ${chapter.id || (index + 1)} 章</span>
+        </div>
+        ${chapter.audioUrl ? `
+        <div>
+          <button id="btn-play-audio-drama" class="my-1 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer">
+            <span>🎭 播放本章多人情境廣播劇</span>
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+        </div>` : ''}
+        <h2 class="text-2xl sm:text-3xl font-extrabold tracking-wide mb-3">${title}</h2>
+        <div class="text-xs opacity-60 flex items-center justify-center gap-4">
+          <span>約 ${words.toLocaleString()} 字</span>
+          <span>•</span>
+          <span>預計閱讀 ${Math.ceil(words / 450)} 分鐘</span>
+        </div>
+      `;
+      DOM.novelContent.appendChild(headerBox);
+
+      // 綁定廣播劇播放按鈕
+      const playBtn = headerBox.querySelector('#btn-play-audio-drama');
+      if (playBtn) {
+        playBtn.addEventListener('click', () => {
+          if (chapter.audioUrl) playAudioDrama(chapter.audioUrl);
+        });
+      }
+
       paragraphs.forEach((pText, pIdx) => {
         const pEl = document.createElement('p');
         pEl.className = 'novel-paragraph';
@@ -1245,28 +1425,24 @@
       DOM.sliderChapter.value = index + 1;
       DOM.mobileProgressLabel.textContent = `第 ${index + 1} / ${State.currentBook.chapters.length} 章`;
 
-      if (targetScrollPercentage > 0) {
-        const targetY = (document.documentElement.scrollHeight - window.innerHeight) * targetScrollPercentage;
-        window.scrollTo({ top: targetY, behavior: 'instant' });
+      const isPaginated = (State.settings.pageMode === 'paginated') && (window.innerWidth < 1024);
+
+      if (isPaginated) {
+        window.scrollTo(0, 0);
+        calculatePages(startAtLastPage ? 'last' : (targetScrollPercentage > 0 ? targetScrollPercentage : 0));
       } else {
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        if (targetScrollPercentage > 0) {
+          const targetY = (document.documentElement.scrollHeight - window.innerHeight) * targetScrollPercentage;
+          window.scrollTo({ top: targetY, behavior: 'instant' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }
       }
 
       renderAllTOCs(DOM.tocSearch.value);
       prefetchNextChapter();
 
-      const prog = {
-        bookId: State.currentBook.bookId,
-        bookTitle: State.currentBook.title,
-        cover: State.currentBook.cover || '',
-        chapterIndex: index,
-        chapterTitle: chapter.title,
-        scrollPercentage: targetScrollPercentage,
-        timestamp: Date.now()
-      };
-      saveBookProgress(State.currentBook.bookId, prog);
-
-      syncToFirestore();
+      saveCurrentProgress();
     }
 
     // --- TOC 目錄管理 (同步更新電腦常駐側邊欄與手機抽屜) ---
@@ -1774,6 +1950,218 @@
       }
     }
 
+
+
+    // --- 📖 一頁一頁 (分頁模式) 核心翻頁引擎 ---
+    function calculatePages(targetPage = 0) {
+      const isPaginated = (State.settings.pageMode === 'paginated') && (window.innerWidth < 1024);
+      if (!isPaginated) {
+        if (DOM.novelContent) {
+          DOM.novelContent.style.transform = 'none';
+        }
+        return;
+      }
+
+      const viewport = DOM.paginatedViewport;
+      if (!viewport || !DOM.novelContent) return;
+
+      const w = window.innerWidth;
+      State.pagination.pageWidth = w;
+
+      // 等候瀏覽器排版完成後計算總頁數
+      requestAnimationFrame(() => {
+        const scrollW = DOM.novelContent.scrollWidth;
+        const pages = Math.max(1, Math.round(scrollW / w));
+        State.pagination.totalPages = pages;
+
+        if (targetPage === 'last') {
+          State.pagination.currentPage = pages - 1;
+        } else if (typeof targetPage === 'number' && targetPage > 0 && targetPage < 1) {
+          // 滾動百分比還原
+          State.pagination.currentPage = Math.round(targetPage * (pages - 1));
+        } else if (typeof targetPage === 'number') {
+          State.pagination.currentPage = Math.min(Math.max(0, targetPage), pages - 1);
+        }
+
+        updatePageTransform(false);
+        updatePageIndicators();
+      });
+    }
+
+    function updatePageTransform(smooth = true) {
+      if (!DOM.novelContent) return;
+      const w = State.pagination.pageWidth || window.innerWidth;
+      const x = -(State.pagination.currentPage * w);
+      DOM.novelContent.style.transition = smooth ? 'transform 0.24s cubic-bezier(0.2, 0, 0.2, 1)' : 'none';
+      DOM.novelContent.style.transform = `translateX(${x}px)`;
+    }
+
+    function updatePageIndicators() {
+      const cur = State.pagination.currentPage + 1;
+      const total = State.pagination.totalPages;
+      if (DOM.paginatedPageLabel) {
+        DOM.paginatedPageLabel.textContent = `第 ${cur} / ${total} 頁`;
+      }
+      if (DOM.paginatedPctLabel) {
+        const pct = Math.round((cur / total) * 100);
+        DOM.paginatedPctLabel.textContent = `${pct}%`;
+      }
+    }
+
+    function nextPage() {
+      const isPaginated = (State.settings.pageMode === 'paginated') && (window.innerWidth < 1024);
+      if (!isPaginated) {
+        window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });
+        return;
+      }
+
+      if (State.pagination.currentPage < State.pagination.totalPages - 1) {
+        State.pagination.currentPage++;
+        updatePageTransform(true);
+        updatePageIndicators();
+        saveCurrentProgress();
+      } else {
+        // 已經是本章最後一頁 ➔ 自然翻到下一章第 1 頁
+        if (State.currentChapterIndex < State.currentBook.chapters.length - 1) {
+          loadChapter(State.currentChapterIndex + 1, 0, false);
+        } else {
+          alert('已是本書最後一章！');
+        }
+      }
+    }
+
+    function prevPage() {
+      const isPaginated = (State.settings.pageMode === 'paginated') && (window.innerWidth < 1024);
+      if (!isPaginated) {
+        window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });
+        return;
+      }
+
+      if (State.pagination.currentPage > 0) {
+        State.pagination.currentPage--;
+        updatePageTransform(true);
+        updatePageIndicators();
+        saveCurrentProgress();
+      } else {
+        // 已經是本章第 1 頁 ➔ 回上一章最後一頁
+        if (State.currentChapterIndex > 0) {
+          loadChapter(State.currentChapterIndex - 1, 0, true);
+        } else {
+          alert('已是第一章！');
+        }
+      }
+    }
+
+    function saveCurrentProgress() {
+      if (!State.currentBook) return;
+      const isPaginated = (State.settings.pageMode === 'paginated') && (window.innerWidth < 1024);
+      let pct = 0;
+      if (isPaginated) {
+        pct = State.pagination.currentPage / Math.max(1, State.pagination.totalPages - 1);
+      } else {
+        const scrollH = document.documentElement.scrollHeight - window.innerHeight;
+        pct = scrollH > 0 ? (window.scrollY / scrollH) : 0;
+      }
+      const prog = {
+        bookId: State.currentBook.bookId,
+        bookTitle: State.currentBook.title,
+        cover: State.currentBook.cover || '',
+        chapterIndex: State.currentChapterIndex,
+        chapterTitle: State.currentBook.chapters[State.currentChapterIndex]?.title || '',
+        scrollPercentage: pct,
+        timestamp: Date.now()
+      };
+      saveBookProgress(State.currentBook.bookId, prog);
+      syncToFirestore();
+    }
+
+    // --- 🎭 多人情境廣播劇播放器支援 ---
+    function formatAudioTime(seconds) {
+      if (isNaN(seconds) || seconds <= 0) return '00:00';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function initAudioDramaPlayer() {
+      if (State.audioDrama.player) return State.audioDrama.player;
+      const audio = new Audio();
+      audio.preload = 'metadata';
+
+      audio.addEventListener('timeupdate', () => {
+        if (!State.audioDrama.isPlaying) return;
+        const cur = formatAudioTime(audio.currentTime);
+        const dur = formatAudioTime(audio.duration);
+        DOM.ttsStatusText.textContent = `🎭 [多人廣播劇] ${cur} / ${dur}`;
+      });
+
+      audio.addEventListener('play', () => {
+        State.audioDrama.isPlaying = true;
+        DOM.ttsIconPlay.classList.add('hidden');
+        DOM.ttsIconPause.classList.remove('hidden');
+      });
+
+      audio.addEventListener('pause', () => {
+        State.audioDrama.isPlaying = false;
+        DOM.ttsIconPlay.classList.remove('hidden');
+        DOM.ttsIconPause.classList.add('hidden');
+      });
+
+      audio.addEventListener('ended', () => {
+        State.audioDrama.isPlaying = false;
+        DOM.ttsIconPlay.classList.remove('hidden');
+        DOM.ttsIconPause.classList.add('hidden');
+        if (State.settings.ttsAutoNext && State.currentChapterIndex + 1 < State.currentBook.chapters.length) {
+          DOM.ttsStatusText.textContent = '廣播劇完畢，載入下一章...';
+          setTimeout(() => {
+            loadChapter(State.currentChapterIndex + 1);
+          }, 800);
+        } else {
+          DOM.ttsStatusText.textContent = '本章廣播劇播放完畢';
+        }
+      });
+
+      audio.addEventListener('error', (e) => {
+        console.warn('廣播劇音訊載入失敗，平滑切換為 AI 即時說書:', e);
+        stopAudioDrama();
+        startTTSFromParagraph(0);
+      });
+
+      State.audioDrama.player = audio;
+      return audio;
+    }
+
+    function playAudioDrama(url) {
+      stopTTS();
+      const player = initAudioDramaPlayer();
+      if (State.audioDrama.activeUrl !== url) {
+        player.src = url;
+        State.audioDrama.activeUrl = url;
+      }
+      DOM.ttsPlayerCard.classList.remove('hidden');
+      DOM.ttsStatusText.textContent = '🎭 正在載入多人情境廣播劇...';
+      player.play().catch(e => console.warn('播放受阻:', e));
+    }
+
+    function pauseAudioDrama() {
+      if (State.audioDrama.player) {
+        State.audioDrama.player.pause();
+      }
+    }
+
+    function resumeAudioDrama() {
+      if (State.audioDrama.player) {
+        State.audioDrama.player.play().catch(() => {});
+      }
+    }
+
+    function stopAudioDrama() {
+      if (State.audioDrama.player) {
+        State.audioDrama.player.pause();
+        State.audioDrama.isPlaying = false;
+      }
+    }
+
     // --- 事件監聽 ---
     function setupEvents() {
       DOM.btnBackToBookshelf.addEventListener('click', showBookshelf);
@@ -1823,6 +2211,14 @@
       DOM.btnCloseToc.addEventListener('click', closeTOC);
       DOM.tocBackdrop.addEventListener('click', closeTOC);
       DOM.btnTocBottom.addEventListener('click', openTOC);
+      if (DOM.btnPlayAudioDrama) {
+        DOM.btnPlayAudioDrama.addEventListener('click', () => {
+          const chap = State.currentBook?.chapters?.[State.currentChapterIndex];
+          if (chap && chap.audioUrl) {
+            playAudioDrama(chap.audioUrl);
+          }
+        });
+      }
       DOM.tocSearch.addEventListener('input', (e) => renderAllTOCs(e.target.value));
       DOM.desktopTocSearch.addEventListener('input', (e) => renderAllTOCs(e.target.value));
 
@@ -1836,34 +2232,10 @@
       DOM.btnTocReverse.addEventListener('click', toggleReverse);
       DOM.btnDesktopTocReverse.addEventListener('click', toggleReverse);
 
-      // ==================== 手機版專屬：三段式點擊熱區 (Tap Zone) ====================
-      // 點擊左側 30% ➔ 上一頁，中央 40% ➔ 選單，右側 30% ➔ 下一頁
-      DOM.novelContent.addEventListener('click', (e) => {
-        // 若使用者在劃線或選字，不觸發翻頁
-        if (window.getSelection().toString().length > 0) return;
-        if (!State.settings.enableTapTurn) return;
-
-        const x = e.clientX;
-        const w = window.innerWidth;
-
-        // 手機版 (寬度小於 1024px)
-        if (w < 1024) {
-          if (x < w * 0.3) {
-            // 左側 30%：向上翻一頁
-            window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });
-          } else if (x > w * 0.7) {
-            // 右側 30%：向下翻一頁
-            window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });
-          } else {
-            // 中央 40%：呼叫/隱藏工具列
-            State.uiVisible = !State.uiVisible;
-            DOM.topNav.classList.toggle('ui-hidden', !State.uiVisible);
-            DOM.mobileBottomBar.classList.toggle('bottom-ui-hidden', !State.uiVisible);
-          }
-        }
-      });
-
-      // ==================== 手機版專屬：左右滑動手勢換章 (Touch Swipe) ====================
+      // ==================== 手機版專屬：觸控翻頁與滑動手勢 ====================
+      // 1. 按一下翻下頁 (Tap to turn next page)
+      // 2. 從左往右滑回上頁 (Swipe left-to-right -> previous page)
+      // 3. 從右往左滑一樣是下一頁 (Swipe right-to-left -> next page)
       let touchStartX = 0;
       let touchStartY = 0;
       let touchStartTime = 0;
@@ -1879,17 +2251,72 @@
 
       window.addEventListener('touchend', (e) => {
         if (DOM.viewReader.classList.contains('hidden')) return;
-        if (e.changedTouches.length === 1) {
-          const deltaX = e.changedTouches[0].clientX - touchStartX;
-          const deltaY = e.changedTouches[0].clientY - touchStartY;
-          const deltaTime = Date.now() - touchStartTime;
+        if (e.changedTouches.length !== 1) return;
 
-          // 快速水平滑動 (距離>80px，垂直偏移<50px，時間<500ms)
-          if (deltaTime < 500 && Math.abs(deltaX) > 80 && Math.abs(deltaY) < 50) {
-            if (deltaX < 0) {
-              goNext(); // 向左滑 ➔ 下一章
+        // 若使用者在劃線或選字，不觸發翻頁
+        if (window.getSelection && window.getSelection().toString().length > 0) return;
+
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const deltaX = endX - touchStartX;
+        const deltaY = endY - touchStartY;
+        const deltaTime = Date.now() - touchStartTime;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        const isPaginated = (State.settings.pageMode === 'paginated') && (w < 1024);
+
+        // A. 水平滑動判定 (位移 > 35px，水平分量大於垂直分量，耗時 < 450ms)
+        if (deltaTime < 450 && Math.abs(deltaX) > 35 && Math.abs(deltaX) > Math.abs(deltaY)) {
+          if (isPaginated) {
+            if (deltaX < -35) {
+              // 從右往左滑 ➔ 下一頁
+              nextPage();
+            } else if (deltaX > 35) {
+              // 從左往右滑 ➔ 回上頁
+              prevPage();
+            }
+          } else {
+            // 傳統上下滾動模式下：左右滑動換章
+            if (deltaX < -70) goNext();
+            else if (deltaX > 70) goPrev();
+          }
+          return;
+        }
+
+        // B. 點擊判定 (手指幾乎無位移，耗時 < 300ms)
+        if (Math.abs(deltaX) < 14 && Math.abs(deltaY) < 14 && deltaTime < 300) {
+          // 若點擊到了按鈕、輸入框等互動元件，不干涉
+          const targetTag = e.target.tagName;
+          if (['BUTTON', 'A', 'INPUT', 'SELECT', 'SVG', 'PATH'].includes(targetTag)) return;
+          if (e.target.closest('button') || e.target.closest('#tts-player-card') || e.target.closest('#top-nav') || e.target.closest('#mobile-bottom-bar')) return;
+
+          if (isPaginated) {
+            // 螢幕中央 36% 區域 ➔ 喚醒/隱藏選單
+            const inCenterX = (endX > w * 0.32 && endX < w * 0.68);
+            const inCenterY = (endY > h * 0.25 && endY < h * 0.75);
+
+            if (inCenterX && inCenterY) {
+              State.uiVisible = !State.uiVisible;
+              DOM.topNav.classList.toggle('ui-hidden', !State.uiVisible);
+              DOM.mobileBottomBar.classList.toggle('bottom-ui-hidden', !State.uiVisible);
+            } else if (endX < w * 0.25) {
+              // 點擊左側 25% ➔ 回上頁
+              prevPage();
             } else {
-              goPrev(); // 向右滑 ➔ 上一章
+              // 點擊其餘大半區域 ➔ 按一下翻下頁！
+              nextPage();
+            }
+          } else {
+            // 滾動模式下的三段式點擊
+            if (endX < w * 0.3) {
+              window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });
+            } else if (endX > w * 0.7) {
+              window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });
+            } else {
+              State.uiVisible = !State.uiVisible;
+              DOM.topNav.classList.toggle('ui-hidden', !State.uiVisible);
+              DOM.mobileBottomBar.classList.toggle('bottom-ui-hidden', !State.uiVisible);
             }
           }
         }
@@ -1990,6 +2417,27 @@
       DOM.toggleDualCol.addEventListener('change', (e) => { State.settings.isDualCol = e.target.checked; applySettings(); });
       DOM.toggleTapTurn.addEventListener('change', (e) => { State.settings.enableTapTurn = e.target.checked; applySettings(); });
 
+      if (DOM.btnPageModePaginated) {
+        DOM.btnPageModePaginated.addEventListener('click', () => {
+          State.settings.pageMode = 'paginated';
+          applySettings();
+          calculatePages(0);
+        });
+      }
+
+      if (DOM.btnPageModeScroll) {
+        DOM.btnPageModeScroll.addEventListener('click', () => {
+          State.settings.pageMode = 'scroll';
+          applySettings();
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        if (State.settings.pageMode === 'paginated') {
+          calculatePages(State.pagination.currentPage);
+        }
+      });
+
       DOM.btnToggleTts.addEventListener('click', () => {
         if (State.tts.speaking && !State.tts.paused) {
           pauseTTS();
@@ -2000,9 +2448,16 @@
         }
       });
       DOM.ttsBtnPlay.addEventListener('click', () => {
+        if (State.audioDrama && State.audioDrama.player && State.audioDrama.activeUrl) {
+          State.audioDrama.isPlaying ? pauseAudioDrama() : resumeAudioDrama();
+          return;
+        }
         (State.tts.speaking && !State.tts.paused) ? pauseTTS() : resumeTTS();
       });
-      DOM.ttsBtnClose.addEventListener('click', stopTTS);
+      DOM.ttsBtnClose.addEventListener('click', () => {
+        stopAudioDrama();
+        stopTTS();
+      });
 
       DOM.ttsRateSelect.addEventListener('change', (e) => {
         State.settings.ttsRate = parseFloat(e.target.value);
